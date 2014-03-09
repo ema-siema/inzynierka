@@ -1,0 +1,6 @@
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
+cmake_minimum_required(VERSION 2.8)
+project( test3 )
+find_package( OpenCV REQUIRED )
+add_executable( test3 test3.cpp )
+target_link_libraries( test3 ${OpenCV_LIBS} )
