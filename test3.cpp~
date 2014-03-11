@@ -16,24 +16,9 @@ using namespace cv;
 typedef vector <Point2f> myPoints;
 
 char key;
+//IplImage* srcGray;
 Mat frame, frameGray, frame1, frame2, frame1Gray, frame2Gray, frameC, pyramid1, pyramid2;
 myPoints corners, corners2;
-static int screenNumber=0;
-double minEigThreshold=1e-3; // a parameter for calcOpticalFlowPyrLK
-
-void saveFlowImageToFile(Mat frameC){
-    bool checkIfWritten;
-    stringstream ss, ss1;
-    ss << screenNumber;
-    string screenNumberString = ss.str();
-
-    ss1 << "images/" << screenNumberString  << ".jpg";  //warning! the "images" directory must previously exist
-    string s = ss1.str();
-    checkIfWritten=imwrite( s , frameC );
-    assert(checkIfWritten==true);
-    cout << s <<endl;
-    screenNumber++;
-}
 
 int main(){
 
@@ -42,14 +27,11 @@ int main(){
 	cvNamedWindow("Camera_Output2", CV_WINDOW_AUTOSIZE); //Create window
 	
 	// open the default camera
-    VideoCapture cap(0);
+	VideoCapture cap(0); 
 	if(!cap.isOpened()){
 		fprintf(stderr, "Error: Can't open video.\n");
 		return -1;
 	}
-    //cap.set(CV_CAP_PROP_FPS, 5); //do not work :(
-    //double currentPos = cap.get(CV_CAP_PROP_POS_FRAMES);//temp
-    //std::cout << "CV_CAP_PROP_POS_FRAMES = " << currentPos << std::endl;//temp. It returnes -1
 
 	CvSize optical_flow_window = cvSize(3,3);
 	CvTermCriteria optical_flow_termination_criteria = cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3 );
@@ -67,8 +49,9 @@ int main(){
 	while(1){
 
 		cap >> frame1; // get a new frame from camera
+		//cvtColor(frame1, frame1Gray, CV_BGR2GRAY);
 		imshow("Camera_Output", frame1);
-        usleep(500000);
+		usleep(100);
 
 		cap >> frame2; // get a new frame from camera
 		//cvtColor(frame2, frame2Gray, CV_BGR2GRAY);
@@ -77,9 +60,9 @@ int main(){
 
 		cvtColor(frame1, frame1Gray, CV_BGR2GRAY);
 		cvtColor(frame2, frame2Gray, CV_BGR2GRAY);
-		calcOpticalFlowPyrLK(frame1Gray, frame2Gray, corners,
+		calcOpticalFlowPyrLK(frame1, frame2, corners,
 			corners2, status, 
-            err, optical_flow_window, 7,
+			err, optical_flow_window, 5, 
 			optical_flow_termination_criteria, 0, 1e-4);
 
 		frameC = frame2.clone();
@@ -87,16 +70,14 @@ int main(){
 		//imshow("Camera_Output", frame2);
 		//imshow("Camera_Output1", frameC);
 
-        saveFlowImageToFile(frameC);
-
 		key = cvWaitKey(10); //Capture Keyboard stroke
 		if (char(key) == 27){
 			break; //If you hit ESC key loop will break.
 		}
 	}
 
-    cvDestroyWindow("Camera_Output");
-    cvDestroyWindow("Camera_Output1");
-    cvDestroyWindow("Camera_Output2");
+	cvDestroyWindow("Camera_Output"); //Destroy Window
+	cvDestroyWindow("Camera_Output1"); //Destroy Window
+	cvDestroyWindow("Camera_Output2"); //Destroy Window
 	return 0;
 }

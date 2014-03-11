@@ -1,0 +1,3 @@
+inline static double square(int a){
+	return a*a;
+}
