@@ -10,6 +10,9 @@
 #include "featuresDemo.h"
 #include "drawFlow.h"
 
+#define FLOW 0
+#define FEATURES 1
+
 using namespace std;
 using namespace cv;
 
@@ -17,22 +20,31 @@ typedef vector <Point2f> myPoints;
 
 char key;
 Mat frame, frameGray, frame1, frame2, frame1Gray, frame2Gray, frameC, pyramid1, pyramid2;
+Mat myCopy;
 myPoints corners, corners2;
 static int screenNumber=0;
-double minEigThreshold=1e-3; // a parameter for calcOpticalFlowPyrLK
+double minEigThreshold=1e-4; // a parameter for calcOpticalFlowPyrLK (default = 1e-4)
 
-void saveFlowImageToFile(Mat frameC){
+void saveFlowImageToFile(Mat frameC, int flag){
     bool checkIfWritten;
     stringstream ss, ss1;
+
     ss << screenNumber;
     string screenNumberString = ss.str();
 
-    ss1 << "images/" << screenNumberString  << ".jpg";  //warning! the "images" directory must previously exist
+    ss1 << "images/" << screenNumberString;
+
+    if(flag == FLOW ) ss1 << "flow";
+    else if(flag == FEATURES) ss1 << "feat";
+
+    ss1 << ".jpg";  //warning! the "images" directory must previously exist
+
     string s = ss1.str();
+
     checkIfWritten=imwrite( s , frameC );
     assert(checkIfWritten==true);
-    cout << s <<endl;
-    screenNumber++;
+
+    if(flag == FLOW ) screenNumber++;
 }
 
 int main(){
@@ -68,26 +80,27 @@ int main(){
 
 		cap >> frame1; // get a new frame from camera
 		imshow("Camera_Output", frame1);
-        usleep(500000);
+        usleep(250000);
 
 		cap >> frame2; // get a new frame from camera
 		//cvtColor(frame2, frame2Gray, CV_BGR2GRAY);
-		goodFeaturesToTrack_Demo( 0, 0, frame1, "Camera_Output1", corners);
+        goodFeaturesToTrack_Demo( 0, 0, frame1, myCopy, "Camera_Output1", corners);
 		assert(corners.size() > 0);
 
 		cvtColor(frame1, frame1Gray, CV_BGR2GRAY);
 		cvtColor(frame2, frame2Gray, CV_BGR2GRAY);
 		calcOpticalFlowPyrLK(frame1Gray, frame2Gray, corners,
 			corners2, status, 
-            err, optical_flow_window, 7,
-			optical_flow_termination_criteria, 0, 1e-4);
+            err, optical_flow_window, 5,
+            optical_flow_termination_criteria, 0, minEigThreshold);
 
 		frameC = frame2.clone();
 		drawFlow(frameC, status, corners, corners2, "Camera_Output2");
 		//imshow("Camera_Output", frame2);
 		//imshow("Camera_Output1", frameC);
 
-        saveFlowImageToFile(frameC);
+        saveFlowImageToFile(myCopy, FEATURES);
+        saveFlowImageToFile(frameC, FLOW);
 
 		key = cvWaitKey(10); //Capture Keyboard stroke
 		if (char(key) == 27){

@@ -18,7 +18,8 @@ RNG rng(12345);
  * @function goodFeaturesToTrack_Demo.cpp
  * @brief Apply Shi-Tomasi corner detector
  */
-void goodFeaturesToTrack_Demo( int, void*, Mat src, string winName, myPoints &corners)
+
+void goodFeaturesToTrack_Demo( int, void*, Mat src, Mat &copy, string winName, myPoints &corners)
 {
   if( maxCorners < 1 ) { maxCorners = 1; }
 
@@ -30,7 +31,7 @@ void goodFeaturesToTrack_Demo( int, void*, Mat src, string winName, myPoints &co
   bool useHarrisDetector = false;
   double k = 0.04;
 
-  Mat copy, frameGray;
+  Mat frameGray;
   copy = src.clone();
   cvtColor(copy, frameGray, CV_BGR2GRAY);
 
@@ -55,5 +56,5 @@ void goodFeaturesToTrack_Demo( int, void*, Mat src, string winName, myPoints &co
 
   /// Show what you got
   //namedWindow( source_window, CV_WINDOW_AUTOSIZE );
-  imshow( winName, copy );
+  imshow( winName, copy);
 }
