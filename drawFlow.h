@@ -48,8 +48,8 @@ void drawFlow(Mat frameC, vector<uchar> status, myPoints corners, myPoints corne
 		hypotenuse = sqrt( square(p.y - q.y) + square(p.x - q.x) );
 
 		/* Here we lengthen the arrow by a factor of three. */
-		q.x = (int) (p.x - 3 * hypotenuse * cos(angle));
-		q.y = (int) (p.y - 3 * hypotenuse * sin(angle));
+        q.x = (int) (p.x -  hypotenuse * cos(angle));
+        q.y = (int) (p.y -  hypotenuse * sin(angle));
 
 		/* Now we draw the main line of the arrow. */
 		/* "frame2" is the frame to draw on.
@@ -63,11 +63,11 @@ void drawFlow(Mat frameC, vector<uchar> status, myPoints corners, myPoints corne
 		/* Now draw the tips of the arrow. I do some scaling so that the
 		* tips look proportional to the main line of the arrow.
 		*/
-		p.x = (int) (q.x + 9 * cos(angle + PI / 4));
-		p.y = (int) (q.y + 9 * sin(angle + PI / 4));
+        p.x = (int) (q.x + 3 * cos(angle + PI / 4));
+        p.y = (int) (q.y + 3 * sin(angle + PI / 4));
 		line( frameC, p, q, line_color, line_thickness, CV_AA, 0 );
-		p.x = (int) (q.x + 9 * cos(angle - PI / 4));
-		p.y = (int) (q.y + 9 * sin(angle - PI / 4));
+        p.x = (int) (q.x + 3 * cos(angle - PI / 4));
+        p.y = (int) (q.y + 3 * sin(angle - PI / 4));
 		line( frameC, p, q, line_color, line_thickness, CV_AA, 0 );
 	}
  	imshow( winName, frameC );

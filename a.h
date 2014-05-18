@@ -6,6 +6,11 @@
 #include <math.h>
 #include <vector>
 
+using namespace std;
+
 inline static double square(int a){
 	return a*a;
 }
+
+
+
