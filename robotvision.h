@@ -20,6 +20,9 @@ public:
     int showWhatRobotSees();
     Mat captureFrame();
     void setupVidCaptureStream(int _device_id);
+    void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step, const Scalar& color);
+    void drawPoorDepth(Mat& flow, Mat& dflowmap, int step);
+
 };
 
 #endif // ROBOTVISION_H
