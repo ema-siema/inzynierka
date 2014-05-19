@@ -29,3 +29,13 @@ void MainWindow::on_pushButton_2_clicked()
 {
     robot.estimateRelativeDepth();
 }
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    robot.showPoorDepthInRealTime();
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    robot.setRobotSpeed(value);
+}

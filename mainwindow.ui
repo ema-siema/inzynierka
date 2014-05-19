@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>298</width>
-    <height>180</height>
+    <width>355</width>
+    <height>233</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,12 +32,67 @@
      <rect>
       <x>30</x>
       <y>70</y>
-      <width>99</width>
+      <width>171</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Mesure depth</string>
+     <string>Mesure depth one time</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_3">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>100</y>
+      <width>171</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show depth in realtime</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>150</y>
+      <width>160</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="singleStep">
+     <number>25</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>140</y>
+      <width>101</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Robot's Speed</string>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="graphicsView">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>40</y>
+      <width>91</width>
+      <height>91</height>
+     </rect>
     </property>
    </widget>
   </widget>
@@ -46,7 +101,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>298</width>
+     <width>355</width>
      <height>25</height>
     </rect>
    </property>

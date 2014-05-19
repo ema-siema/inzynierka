@@ -4,29 +4,33 @@
 
 #define SCALE_FACTOR 5
 
+///global robotSpeed = 0; //todo mock for robot's speed
+
 using namespace cv;
 
+double RobotVision::getRobotSpeed() const
+{
+    return robotSpeed;
+}
+void RobotVision::setRobotSpeed(double value)
+{
+    robotSpeed = value;
+}
 RobotVision::RobotVision()
 {
     device_id = 0;
+    robotSpeed = 0;
 }
 
-
 int RobotVision::showWhatRobotSees(){
-    Mat frame1, frame2;
+    Mat frame1;
     cvNamedWindow("Camera_Output", CV_WINDOW_AUTOSIZE); //Create window
 
-    capt >> frame1; // get a new frame from camera
-    imshow("Camera_Output", frame1);
-    usleep(250000); //TODO do sth better...
-
-    while(cvWaitKey(33) != 27){
+    while(cvWaitKey(10)!=27){
 
         capt >> frame1; // get a new frame from camera
         imshow("Camera_Output", frame1);
-        usleep(250000); //TODO do sth better...
-        capt >> frame2; // get a new frame from camera
-        imshow("Camera_Output", frame2);
+
     }
 
     cvDestroyAllWindows();
@@ -51,30 +55,21 @@ double flowVectorLength( Point2f& fxy ){
 }
 
 void RobotVision::drawPoorDepth ( Mat& flow, Mat& dflowmap, int step) {
+    /*draws inacurate depth on dflowmap for user interface purposes.
+    Is meant to be used in some imshow() functions .*/
     int len;
     for(int y = 0; y < dflowmap.rows; y += step)
         for(int x = 0; x < dflowmap.cols; x += step)
         {
             Point2f& fxy = flow.at<Point2f>(y, x);
-
             Vec3b color = flow.at<Vec3b>(Point(x,y));
 
-            //dflowmap.at<Point2f>(y, x);
             len=flowVectorLength(fxy);
-            ///cout << "heheszki" << len <<endl;
-            //Point3_<uchar>* p = flow.ptr<Point3_<uchar> >(y,x);
-            //cout << "debugos1 " << flow.at<cv::Vec3b>(y,x)[0]  << endl;
 
-            ///cout << "debugos1 " << (int)color[0]  << endl;
-            ///cout << "debugos2 " << (int)color[1]  << endl;
-            ///cout << "debugos3 " << (int)color[2]  << endl;
-            color[0] = len*SCALE_FACTOR;
+            color[0] = len*SCALE_FACTOR;    //todo maybe use some nonlinear function for pixel brightness setting?
             color[1] = len*SCALE_FACTOR;
             color[2] = len*SCALE_FACTOR;
             dflowmap.at<Vec3b>(Point(x,y)) = color;
-
-            //line(cflowmap, Point(x,y), Point(cvRound(x+fxy.x), cvRound(y+fxy.y)), color);
-            //circle(cflowmap, Point(cvRound(x+fxy.x), cvRound(y+fxy.y)), 1, color, -1);
         }
 }
 
@@ -84,7 +79,7 @@ void RobotVision::estimateRelativeDepth(){
     Mat frame1, frame2, gray1, gray2, flow, cflow, dflow;
 
     frame1 = captureFrame();
-    usleep(250000); //TODO do sth better...
+    usleep(250000); //TODO do sth better... it should be connected with robot's speed
     frame2 = captureFrame();
     cvtColor(frame1, gray1, COLOR_BGR2GRAY);
     cvtColor(frame2, gray2, COLOR_BGR2GRAY);
@@ -105,6 +100,45 @@ void RobotVision::estimateRelativeDepth(){
     imshow("Camera_Output2,1", dflow);
 
     cout << "void estimateRelativeDepth()" << endl; //debug
+}
+
+void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
+    //given two frames, it depicts imprecise relative depth basing on optical flow
+
+    Mat gray1, gray2, flow, cflow;
+
+    cvtColor(frame1, gray1, COLOR_BGR2GRAY);
+    cvtColor(frame2, gray2, COLOR_BGR2GRAY);
+
+    calcOpticalFlowFarneback(gray1, gray2, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+    cvtColor(gray1, cflow, COLOR_GRAY2BGR);
+    drawOptFlowMap(flow, cflow, 8, Scalar(0, 255, 0));
+    drawPoorDepth(flow, pRelDepth, 1);
+
+    assert(!cflow.empty()); //debug
+    assert(!pRelDepth.empty()); //debug
+
+    cout << "void estimateRelativeDepth()" << endl; //debug
+}
+
+void RobotVision::showPoorDepthInRealTime(){
+    Mat frame1, frame2, result;
+    cvNamedWindow("Camera_Output_D", CV_WINDOW_AUTOSIZE); //Create window
+
+    while(cvWaitKey(10)!=27){
+
+        if(getRobotSpeed()!=0){
+            capt >> frame1; // get a new frame from camera
+            usleep(250000); //TODO do sth better...
+            capt >> frame2; // get a new frame from camera
+            frame2.copyTo(result);
+            estimateRelativeDepth(frame1, frame2, result);
+            assert(!result.empty());
+            imshow("Camera_Output_D", result);
+        }
+    }
+
+    cvDestroyAllWindows();
 }
 
 /*captures frame from "capt" stream in RobotVision object*/
