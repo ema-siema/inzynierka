@@ -19,17 +19,12 @@ LIBS += -lopencv_flann
 LIBS += -lopencv_nonfree
 
 SOURCES += \
-    ../test3.cpp \
     ../mainwindow.cpp \
     ../main.cpp \
     ../robotvision.cpp
 
 HEADERS += \
-    ../a.h \
-    ../drawFlow.h \
-    ../featuresDemo.h \
     ../mainwindow.h \
-    ../loop.h \
     ../robotvision.h
 
 OTHER_FILES +=

@@ -1,10 +1,14 @@
 #include "robotvision.h"
 #include <cv.h>
 #include <assert.h>
+#include <vector>
 
 #define SCALE_FACTOR 5
+#define STANDARD_FRAME_WIDTH 640 //in pixels
+#define STANDARD_FRAME_HEIGHT 480
 
-///global robotSpeed = 0; //todo mock for robot's speed
+
+///global robotSpeed = 0; //todo: mock for robot's speed
 
 using namespace cv;
 
@@ -12,29 +16,71 @@ double RobotVision::getRobotSpeed() const
 {
     return robotSpeed;
 }
+
 void RobotVision::setRobotSpeed(double value)
 {
     robotSpeed = value;
 }
+
+int RobotVision::getMesuredAreaWidth() const
+{
+    return mesuredAreaWidth;
+}
+
+void RobotVision::setMesuredAreaWidth(int value)
+{
+    mesuredAreaWidth = value;
+}
+
+int RobotVision::getMesuredAreaHeight() const
+{
+    return mesuredAreaHeight;
+}
+
+void RobotVision::setMesuredAreaHeight(int value)
+{
+    mesuredAreaHeight = value;
+}
+
 RobotVision::RobotVision()
 {
     device_id = 0;
     robotSpeed = 0;
+    mesuredAreaHeight = STANDARD_FRAME_HEIGHT;
+    mesuredAreaWidth = STANDARD_FRAME_WIDTH;
 }
 
 int RobotVision::showWhatRobotSees(){
     Mat frame1;
     cvNamedWindow("Camera_Output", CV_WINDOW_AUTOSIZE); //Create window
+    Rect rect;
 
     while(cvWaitKey(10)!=27){
 
         capt >> frame1; // get a new frame from camera
+//        rect = createRectangleForMesuredArea();
+//        rectangle(frame1, rect, Scalar(0, 0, 0));
         imshow("Camera_Output", frame1);
 
     }
 
     cvDestroyAllWindows();
     return 0;
+}
+
+Mat RobotVision::showWhatRobotSees2(){
+    // This function varies from int RobotVision::showWhatRobotSees()
+    // It doesn't use imshow in a loop, but returns current frame.
+    // This function is meant to be used in a extern loop.
+
+    Mat frame;
+    Rect rect;
+
+    capt >> frame; // get a new frame from camera
+    rect = createRectangleForMesuredArea();
+    rectangle(frame, rect, Scalar(0, 0, 0));
+
+    return frame;
 }
 
 void RobotVision::drawOptFlowMap (const Mat& flow, Mat& cflowmap, int step, const Scalar& color) {
@@ -54,10 +100,13 @@ double flowVectorLength( Point2f& fxy ){
     return ( sqrt( (fxy.x)*(fxy.x) + (fxy.y)*(fxy.y) ) );
 }
 
+/*draws inacurate depth on dflowmap for user interface purposes.
+Is meant to be used with some imshow() functions .*/
+
 void RobotVision::drawPoorDepth ( Mat& flow, Mat& dflowmap, int step) {
-    /*draws inacurate depth on dflowmap for user interface purposes.
-    Is meant to be used in some imshow() functions .*/
+
     int len;
+
     for(int y = 0; y < dflowmap.rows; y += step)
         for(int x = 0; x < dflowmap.cols; x += step)
         {
@@ -73,14 +122,33 @@ void RobotVision::drawPoorDepth ( Mat& flow, Mat& dflowmap, int step) {
         }
 }
 
-void RobotVision::estimateRelativeDepth(){
-    //given two frames, it depicts imprecise relative depth basing on optical flow
+//given two frames, it depicts imprecise relative depth basing on optical flow
 
+Rect RobotVision::createRectangleForMesuredArea(){
+
+    int x = 0,
+        y = (STANDARD_FRAME_HEIGHT - this->mesuredAreaHeight)/2,
+        width = STANDARD_FRAME_WIDTH,
+        height = this->mesuredAreaHeight/2;
+
+    cout << "createRectangleForMesuredArea " << y << endl;
+    return Rect(x, y, width, height);
+}
+
+vector <Mat> RobotVision::estimateRelativeDepth(){
+
+    vector <Mat> vec;
     Mat frame1, frame2, gray1, gray2, flow, cflow, dflow;
 
     frame1 = captureFrame();
     usleep(250000); //TODO do sth better... it should be connected with robot's speed
     frame2 = captureFrame();
+
+    Rect rect = createRectangleForMesuredArea();
+
+    frame1 = frame1(rect);
+    frame2 = frame2(rect);
+
     cvtColor(frame1, gray1, COLOR_BGR2GRAY);
     cvtColor(frame2, gray2, COLOR_BGR2GRAY);
 
@@ -93,17 +161,23 @@ void RobotVision::estimateRelativeDepth(){
     assert(!flow.empty()); //debug
     assert(!cflow.empty()); //debug
 
-    cvNamedWindow("Camera_Output2", CV_WINDOW_AUTOSIZE);
-    imshow("Camera_Output2", cflow);
+    //not needed anymore since the plot is shown in QLabel
+    //cvNamedWindow("Camera_Output2", CV_WINDOW_AUTOSIZE);
+    //imshow("Camera_Output2", cflow);
 
-    cvNamedWindow("Camera_Output2,1", CV_WINDOW_AUTOSIZE);
-    imshow("Camera_Output2,1", dflow);
+    //cvNamedWindow("Camera_Output2,1", CV_WINDOW_AUTOSIZE);
+    //imshow("Camera_Output2,1", dflow);
 
-    cout << "void estimateRelativeDepth()" << endl; //debug
+    vec.push_back(cflow);
+    vec.push_back(dflow);
+
+    cout << "void estimateRelativeDepth()" <<" totreo " << endl; //debug
+
+    return vec;
 }
 
+//given two frames, it depicts imprecise relative depth basing on optical flow
 void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
-    //given two frames, it depicts imprecise relative depth basing on optical flow
 
     Mat gray1, gray2, flow, cflow;
 
@@ -118,7 +192,7 @@ void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
     assert(!cflow.empty()); //debug
     assert(!pRelDepth.empty()); //debug
 
-    cout << "void estimateRelativeDepth()" << endl; //debug
+    cout << "void estimateRelativeDepth()" <<" what!??"<< endl; //debug
 }
 
 void RobotVision::showPoorDepthInRealTime(){
@@ -144,9 +218,7 @@ void RobotVision::showPoorDepthInRealTime(){
 /*captures frame from "capt" stream in RobotVision object*/
 Mat RobotVision::captureFrame(){
     Mat frame;
-
     capt >> frame;
-
     return frame;
 }
 
@@ -164,4 +236,36 @@ void RobotVision::setupVidCaptureStream(int _device_id){
     else{
         cout << "Device opened " << endl;
     }
+}
+
+cv::Mat RobotVision::showDepthMap(){
+    Mat mat;
+    mat = drawPlotAxes();
+    assert(!mat.empty()); //debug
+    return mat;
+}
+
+cv::Mat RobotVision::drawPlotAxes(){
+    int left = 10, down = 470, right = 630, up = 10;
+    int step = 50;
+    Scalar black(0,0,0);
+    Scalar white(254,254,254);
+
+    Mat plot(480, 640, CV_8UC3, white);
+    putText(plot, "Distance (meters)", Point(left, up), FONT_HERSHEY_PLAIN, 1.0, black);
+    putText(plot, "Angle (deegres)", Point(right-130, down-20), FONT_HERSHEY_PLAIN, 1.0, black);
+    //cvNamedWindow("Depth plot", CV_WINDOW_AUTOSIZE);
+    //imshow("Dvoidepth plot", plot); //not needed anymore since the plot is shown in QLabel
+    line(plot, Point(left, down), Point(right, down), black);
+    line(plot, Point(left, down), Point(left, up), black);
+
+    for(int height = down; height >= up; height -= step){
+        line(plot, Point(left-5, height), Point(left+5, height), black);
+    }
+
+    for(int width = left; width <= right; width += step){
+        line(plot, Point(width, down+5), Point(width, down-5), black);
+    }
+
+    return plot;
 }

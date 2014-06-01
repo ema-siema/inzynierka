@@ -30,6 +30,18 @@ private slots:
 
     void on_horizontalSlider_valueChanged(int value);
 
+    void on_pushButton_4_clicked();
+
+    void on_pushButton_7_clicked();
+
+    void on_lineEdit_editingFinished();
+
+    void on_lineEdit_2_editingFinished();
+
+    void on_mesuredWidthSlider_valueChanged(int value);
+
+    void on_StartButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
