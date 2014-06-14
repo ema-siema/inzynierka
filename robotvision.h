@@ -40,7 +40,7 @@ public:
 
     VideoCapture capt;
     RobotVision();
-    vector <Mat> estimateRelativeDepth();
+    vector <Mat> estimateRelativeDepth(Mat frame1, Mat frame2);
     void estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth);
     int showWhatRobotSees();
     Mat showWhatRobotSees2();

@@ -32,18 +32,43 @@ void MainWindow::on_pushButton_clicked()
         cvtColor(frame, frame, CV_BGR2RGB);
         img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
         ui->label_7->setPixmap(QPixmap::fromImage(img));
-    }
+        cout << "start" <<endl;
 
+    }
 }
 
 //the "Mesure depth one time" button
 void MainWindow::on_pushButton_2_clicked()
 {
     vector <Mat> vec;
-    cv::Mat rgb;
+    cv::Mat rgb, frame1, frame2, frame;
     QImage img;
 
-    vec = robot.estimateRelativeDepth();
+//    frame1 = robot.captureFrame();
+    robot.capt >>  frame1;
+    cout<< "estimateRelativeDepth(): measure started" << endl;
+
+    cvNamedWindow("flow1", CV_WINDOW_AUTOSIZE); //todo del
+    imshow("flow1", frame1);//todo del
+
+    while(true){
+
+        frame = robot.showWhatRobotSees2();
+        assert(!frame.empty()); //debug
+        cvtColor(frame, frame, CV_BGR2RGB);
+        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+        ui->label_7->setPixmap(QPixmap::fromImage(img));
+        cout << "mesure depth one time" <<endl;
+        if(cvWaitKey(10)==27) break;
+    }
+    cout<< "estimateRelativeDepth(): measure ended" << endl;
+
+    cvtColor(frame, frame, CV_RGB2BGR);
+
+    cvNamedWindow("flow2", CV_WINDOW_AUTOSIZE); //todo del
+    imshow("flow2", frame);//todo del
+
+    vec = robot.estimateRelativeDepth(frame1, frame);
 
     rgb = vec[1];
     assert(!rgb.empty()); //debug

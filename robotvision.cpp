@@ -78,7 +78,7 @@ Mat RobotVision::showWhatRobotSees2(){
 
     capt >> frame; // get a new frame from camera
     rect = createRectangleForMesuredArea();
-    rectangle(frame, rect, Scalar(0, 0, 0));
+    rectangle(frame, rect, Scalar(0, 255, 0));
 
     return frame;
 }
@@ -129,22 +129,19 @@ Rect RobotVision::createRectangleForMesuredArea(){
     int x = 0,
         y = (STANDARD_FRAME_HEIGHT - this->mesuredAreaHeight)/2,
         width = STANDARD_FRAME_WIDTH,
-        height = this->mesuredAreaHeight/2;
+        height = this->mesuredAreaHeight;
 
-    cout << "createRectangleForMesuredArea " << y << endl;
+    //cout << "createRectangleForMesuredArea " << y << endl; //debug
     return Rect(x, y, width, height);
 }
 
-vector <Mat> RobotVision::estimateRelativeDepth(){
+vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 
     vector <Mat> vec;
-    Mat frame1, frame2, gray1, gray2, flow, cflow, dflow;
+    Mat gray1, gray2, flow, cflow, dflow, eflow;
+    //usleep(1000000); //TODO do sth better... it should be connected with robot's speed
 
-    frame1 = captureFrame();
-    usleep(250000); //TODO do sth better... it should be connected with robot's speed
-    frame2 = captureFrame();
-
-    Rect rect = createRectangleForMesuredArea();
+    Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
 
     frame1 = frame1(rect);
     frame2 = frame2(rect);
@@ -153,13 +150,18 @@ vector <Mat> RobotVision::estimateRelativeDepth(){
     cvtColor(frame2, gray2, COLOR_BGR2GRAY);
 
     calcOpticalFlowFarneback(gray1, gray2, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+
     cvtColor(gray1, cflow, COLOR_GRAY2BGR);
     cvtColor(gray2, dflow, COLOR_GRAY2BGR);
-    drawOptFlowMap(flow, cflow, 8, Scalar(0, 255, 0));
+    dflow.copyTo(eflow);
+
+    drawOptFlowMap(flow, eflow, 8, Scalar(0, 255, 0));
     drawPoorDepth(flow, dflow, 1);
 
     assert(!flow.empty()); //debug
     assert(!cflow.empty()); //debug
+    assert(!eflow.empty()); //debug
+
 
     //not needed anymore since the plot is shown in QLabel
     //cvNamedWindow("Camera_Output2", CV_WINDOW_AUTOSIZE);
@@ -168,10 +170,10 @@ vector <Mat> RobotVision::estimateRelativeDepth(){
     //cvNamedWindow("Camera_Output2,1", CV_WINDOW_AUTOSIZE);
     //imshow("Camera_Output2,1", dflow);
 
-    vec.push_back(cflow);
+    vec.push_back(eflow);
     vec.push_back(dflow);
 
-    cout << "void estimateRelativeDepth()" <<" totreo " << endl; //debug
+    //cout << "void estimateRelativeDepth()" <<" totreo " << endl; //debug
 
     return vec;
 }
@@ -192,7 +194,7 @@ void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
     assert(!cflow.empty()); //debug
     assert(!pRelDepth.empty()); //debug
 
-    cout << "void estimateRelativeDepth()" <<" what!??"<< endl; //debug
+    cout << "void estimateRelativeDepth()" << endl; //debug
 }
 
 void RobotVision::showPoorDepthInRealTime(){
