@@ -42,6 +42,36 @@ void RobotVision::setMesuredAreaHeight(int value)
     mesuredAreaHeight = value;
 }
 
+
+Mat RobotVision::getInitialDepthFrame() const
+{
+    return initialDepthFrame;
+}
+
+void RobotVision::setInitialDepthFrame(const Mat &value)
+{
+    initialDepthFrame = value;
+}
+
+Mat RobotVision::getLastDepthFrame() const
+{
+    return lastDepthFrame;
+}
+
+void RobotVision::setLastDepthFrame(const Mat &value)
+{
+    lastDepthFrame = value;
+}
+
+int RobotVision::getMesuredAreaVerticalPosition() const
+{
+    return mesuredAreaVerticalPosition;
+}
+
+void RobotVision::setMesuredAreaVerticalPosition(int value)
+{
+    mesuredAreaVerticalPosition = value;
+}
 RobotVision::RobotVision()
 {
     device_id = 0;
@@ -84,15 +114,52 @@ Mat RobotVision::showWhatRobotSees2(){
 }
 
 void RobotVision::drawOptFlowMap (const Mat& flow, Mat& cflowmap, int step, const Scalar& color) {
-//taken from Gunnar Farneback example in opencv directory
+//Taken from Gunnar Farneback example in opencv directory.
+//Modified to estimate TTC
+
+    double distanceFromFOE, flowVectorLength;
+
     for(int y = 0; y < cflowmap.rows; y += step)
         for(int x = 0; x < cflowmap.cols; x += step)
         {
             const Point2f& fxy = flow.at<Point2f>(y, x);
+
+            flowVectorLength = sqrt( (fxy.x)*(fxy.x) + (fxy.y)*(fxy.y) );
+            //cout << "flowVectorLength: " << flowVectorLength << endl;
+
+            distanceFromFOE = calcDistanceFromFOE(x, y);
+            //cout << "distanceFromFOE: " << distanceFromFOE << endl;
+
+            //cout << "TTC: " << distanceFromFOE/flowVectorLength << endl;
+
             line(cflowmap, Point(x,y), Point(cvRound(x+fxy.x), cvRound(y+fxy.y)),
                  color);
             circle(cflowmap, Point(cvRound(x+fxy.x), cvRound(y+fxy.y)), 1, color, -1);
         }
+
+}
+
+double RobotVision::calcDistanceFromFOE(int x, int y){
+    int fx, fy; //FOE x & FOE y
+    double fxd, fyd, xd, yd;
+    double result, temp, temp2;
+
+    fx = FOE.first;
+    fy = FOE.second;
+
+    fxd = (double)fx;
+    fyd = (double)fy;
+    xd = (double)x;
+    yd = (double)y;
+
+    temp = abs( fxd - xd );
+    temp2  = abs(fyd - yd);
+    //cout <<"x: "<< xd <<"fx: "<< fx<<" y: "<<yd <<" fy: "<<fy <<" temp: "<<temp<<" temp2: "<< temp2 << endl;
+
+    result = temp*temp + temp2*temp2;
+    result = sqrt(result);
+
+    return result;
 }
 
 double flowVectorLength( Point2f& fxy ){
@@ -135,6 +202,11 @@ Rect RobotVision::createRectangleForMesuredArea(){
     return Rect(x, y, width, height);
 }
 
+void calcTTC(){
+
+
+}
+
 vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 
     vector <Mat> vec;
@@ -155,6 +227,8 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     cvtColor(gray2, dflow, COLOR_GRAY2BGR);
     dflow.copyTo(eflow);
 
+    this->findFOE();
+
     drawOptFlowMap(flow, eflow, 8, Scalar(0, 255, 0));
     drawPoorDepth(flow, dflow, 1);
 
@@ -162,18 +236,9 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     assert(!cflow.empty()); //debug
     assert(!eflow.empty()); //debug
 
-
-    //not needed anymore since the plot is shown in QLabel
-    //cvNamedWindow("Camera_Output2", CV_WINDOW_AUTOSIZE);
-    //imshow("Camera_Output2", cflow);
-
-    //cvNamedWindow("Camera_Output2,1", CV_WINDOW_AUTOSIZE);
-    //imshow("Camera_Output2,1", dflow);
-
     vec.push_back(eflow);
     vec.push_back(dflow);
-
-    //cout << "void estimateRelativeDepth()" <<" totreo " << endl; //debug
+    vec.push_back(flow);
 
     return vec;
 }
@@ -241,6 +306,8 @@ void RobotVision::setupVidCaptureStream(int _device_id){
 }
 
 cv::Mat RobotVision::showDepthMap(){
+    //todo: this is just a mock. it should take parameters (i.e. results of
+    //measurement) and draw a real plot
     Mat mat;
     mat = drawPlotAxes();
     assert(!mat.empty()); //debug
@@ -271,3 +338,25 @@ cv::Mat RobotVision::drawPlotAxes(){
 
     return plot;
 }
+
+ pair <int, int> RobotVision::findFOE(){
+     //todo: this is just a mock... implement methods for real FOE calculation.
+     //now it always puts FOE in the center of the image.
+    int x, y;
+    pair <int, int> result;
+
+    x = this->mesuredAreaWidth/2;
+    y = this->mesuredAreaHeight/2;  //todo: take also vertical position into account
+
+    FOE.first = x;
+    FOE.second = y;
+
+    result = pair<int, int>(x, y);
+
+    return result;
+ }
+
+ void RobotVision::drawFOE(pair <int, int> foe, Mat &frame){
+    circle(frame, Point(foe.first, foe.second), 6, Scalar(255, 0, 0));
+ }
+

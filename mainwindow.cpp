@@ -32,8 +32,6 @@ void MainWindow::on_pushButton_clicked()
         cvtColor(frame, frame, CV_BGR2RGB);
         img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
         ui->label_7->setPixmap(QPixmap::fromImage(img));
-        cout << "start" <<endl;
-
     }
 }
 
@@ -71,6 +69,8 @@ void MainWindow::on_pushButton_2_clicked()
     vec = robot.estimateRelativeDepth(frame1, frame);
 
     rgb = vec[1];
+    robot.drawFOE(robot.findFOE(), rgb);
+    cout <<"debugeiro"<<endl;
     assert(!rgb.empty()); //debug
     img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
     ui->label_5->setPixmap(QPixmap::fromImage(img));
@@ -94,10 +94,38 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
 //the "End measurement" button
 void MainWindow::on_pushButton_4_clicked()
 {
-    cv::Mat mat, rgb;
+    cv::Mat mat, rgb, frame, frame1, frame2, flow;
     QImage img;
+    vector <Mat> vec;
+    pair <int, int> foe;
+
+    robot.capt >>  frame;
+
+    cout<< "on_pushButton_4_clicked(): measure ended" << endl;
+    robot.setLastDepthFrame(frame);
+
+    robot.getLastDepthFrame().copyTo(frame2);
+    robot.getInitialDepthFrame().copyTo(frame1);
+
+    vec = robot.estimateRelativeDepth(frame1, frame2);
+
+    rgb = vec[1];
+    robot.drawFOE(robot.findFOE(), rgb);    //todo change findFOE to some getFOE
+    assert(!rgb.empty()); //debug
+    img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
+    ui->label_5->setPixmap(QPixmap::fromImage(img));
+
+    rgb = vec[0];
+    assert(!rgb.empty()); //debug
+    img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
+    ui->label_6->setPixmap(QPixmap::fromImage(img));
+
+
+    //draw plot in the "Cartesian Depth Map" tab
+
     rgb = robot.showDepthMap();
     assert(!rgb.empty()); //debug
+
     img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
     ui->label_4->setPixmap(QPixmap::fromImage(img));
 }
@@ -134,4 +162,13 @@ void MainWindow::on_StartButton_clicked()
 {
 
 
+}
+//the 'start measurement' button
+void MainWindow::on_pushButton_5_clicked()
+{
+    Mat frame;
+    robot.capt >>  frame;
+    cout<< "on_pushButton_5_clicked(): measure started" << endl; //debug
+
+    robot.setInitialDepthFrame(frame);
 }

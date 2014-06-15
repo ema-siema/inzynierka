@@ -35,11 +35,17 @@ private:
     double robotSpeed;
     int mesuredAreaWidth;
     int mesuredAreaHeight;
+    int mesuredAreaVerticalPosition;
+    Mat initialDepthFrame;
+    Mat lastDepthFrame;
 
 public:
 
     VideoCapture capt;
+    pair <int, int> FOE; // first = x, second = y
+
     RobotVision();
+
     vector <Mat> estimateRelativeDepth(Mat frame1, Mat frame2);
     void estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth);
     int showWhatRobotSees();
@@ -50,17 +56,31 @@ public:
     void drawPoorDepth(Mat& flow, Mat& dflowmap, int step);
     void showPoorDepthInRealTime();
     cv::Mat showDepthMap();
-    double getRobotSpeed() const;
-    void setRobotSpeed(double value);
     cv::Mat drawPlotAxes();
     Rect createRectangleForMesuredArea();
+    pair <int, int> findFOE();
+    void drawFOE(pair <int, int> foe, Mat &frame);
+    double calcDistanceFromFOE(int x, int y);
+
 
     //getters and setters
     int getMesuredAreaWidth() const;
     void setMesuredAreaWidth(int value);
+
     int getMesuredAreaHeight() const;
     void setMesuredAreaHeight(int value);
 
+    double getRobotSpeed() const;
+    void setRobotSpeed(double value);
+
+    Mat getInitialDepthFrame() const;
+    void setInitialDepthFrame(const Mat &value);
+
+    Mat getLastDepthFrame() const;
+    void setLastDepthFrame(const Mat &value);
+
+    int getMesuredAreaVerticalPosition() const;
+    void setMesuredAreaVerticalPosition(int value);
 };
 
 #endif // ROBOTVISION_H
