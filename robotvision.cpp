@@ -115,22 +115,11 @@ Mat RobotVision::showWhatRobotSees2(){
 
 void RobotVision::drawOptFlowMap (const Mat& flow, Mat& cflowmap, int step, const Scalar& color) {
 //Taken from Gunnar Farneback example in opencv directory.
-//Modified to estimate TTC
-
-    double distanceFromFOE, flowVectorLength;
 
     for(int y = 0; y < cflowmap.rows; y += step)
         for(int x = 0; x < cflowmap.cols; x += step)
         {
             const Point2f& fxy = flow.at<Point2f>(y, x);
-
-            flowVectorLength = sqrt( (fxy.x)*(fxy.x) + (fxy.y)*(fxy.y) );
-            //cout << "flowVectorLength: " << flowVectorLength << endl;
-
-            distanceFromFOE = calcDistanceFromFOE(x, y);
-            //cout << "distanceFromFOE: " << distanceFromFOE << endl;
-
-            //cout << "TTC: " << distanceFromFOE/flowVectorLength << endl;
 
             line(cflowmap, Point(x,y), Point(cvRound(x+fxy.x), cvRound(y+fxy.y)),
                  color);
@@ -162,7 +151,7 @@ double RobotVision::calcDistanceFromFOE(int x, int y){
     return result;
 }
 
-double flowVectorLength( Point2f& fxy ){
+double calcFlowVectorLength( Point2f& fxy ){
 
     return ( sqrt( (fxy.x)*(fxy.x) + (fxy.y)*(fxy.y) ) );
 }
@@ -170,9 +159,11 @@ double flowVectorLength( Point2f& fxy ){
 /*draws inacurate depth on dflowmap for user interface purposes.
 Is meant to be used with some imshow() functions .*/
 
-void RobotVision::drawPoorDepth ( Mat& flow, Mat& dflowmap, int step) {
+void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, double ttcmatrix[][640], int step) {
+    //Modified to additionally estimate TTC
 
-    int len;
+    double distanceFromFOE, flowVectorLength, TTC, max;
+    max = 0;
 
     for(int y = 0; y < dflowmap.rows; y += step)
         for(int x = 0; x < dflowmap.cols; x += step)
@@ -180,13 +171,27 @@ void RobotVision::drawPoorDepth ( Mat& flow, Mat& dflowmap, int step) {
             Point2f& fxy = flow.at<Point2f>(y, x);
             Vec3b color = flow.at<Vec3b>(Point(x,y));
 
-            len=flowVectorLength(fxy);
+            flowVectorLength = calcFlowVectorLength(fxy);
+//            cout << "flowVectorLength: " << flowVectorLength << endl;
 
-            color[0] = len*SCALE_FACTOR;    //todo maybe use some nonlinear function for pixel brightness setting?
-            color[1] = len*SCALE_FACTOR;
-            color[2] = len*SCALE_FACTOR;
+            distanceFromFOE = calcDistanceFromFOE(x, y);
+//            cout << "distanceFromFOE: " << distanceFromFOE << endl;
+
+            if(flowVectorLength < 1) flowVectorLength=0;
+
+            //cout << "TTC: " << distanceFromFOE/flowVectorLength << endl;
+            if(flowVectorLength != 0 ) TTC = distanceFromFOE/flowVectorLength;
+            else TTC = -1;
+            //cout <<" TTC "<< TTC <<endl;
+            if(TTC > max) max = TTC;
+            ttcmatrix[y][x] = TTC;
+
+            color[0] = flowVectorLength*SCALE_FACTOR;
+            color[1] = flowVectorLength*SCALE_FACTOR;
+            color[2] = flowVectorLength*SCALE_FACTOR;
             dflowmap.at<Vec3b>(Point(x,y)) = color;
         }
+    cout << "max: " << max<< endl;
 }
 
 //given two frames, it depicts imprecise relative depth basing on optical flow
@@ -202,15 +207,40 @@ Rect RobotVision::createRectangleForMesuredArea(){
     return Rect(x, y, width, height);
 }
 
-void calcTTC(){
+void drawTTCMap( Mat &map, double TTCMatrix[][640], int size){
+    double max = 0, TTC;
+    int col;
+    Vec3b color = map.at<Vec3b>(Point(1,1));
 
+    for(int x=0; x<640; x++)
+        for(int y=0; y<size; y++ ){
+           if(TTCMatrix[y][x] > max ) max = TTCMatrix[y][x];
+           //cout<< "TTCMatrix"<<TTCMatrix[y][x] << endl;
+        }
 
+    cout <<"maxo"<<max<<endl;
+    max=2*max;
+
+    for(int x=0; x<640; x++)
+        for(int y=0; y<size; y++ ){
+
+           if(TTCMatrix[y][x] == -1 ) TTCMatrix[y][x] = max;
+           col = 255*TTCMatrix[y][x]/max;
+           //cout << "col " << col <<endl;
+
+           color[0] = 255-col;    //todo maybe use some nonlinear function for pixel brightness setting?
+           color[1] = 255-col;
+           color[2] = 255-col;
+           map.at<Vec3b>(Point(x,y)) = color;
+        }
 }
+
 
 vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 
     vector <Mat> vec;
-    Mat gray1, gray2, flow, cflow, dflow, eflow;
+    Mat gray1, gray2, flow, cflow, dflow, eflow, ttcMap, plot;
+    double ttcmatrix[getMesuredAreaHeight()][640];
     //usleep(1000000); //TODO do sth better... it should be connected with robot's speed
 
     Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
@@ -226,19 +256,38 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     cvtColor(gray1, cflow, COLOR_GRAY2BGR);
     cvtColor(gray2, dflow, COLOR_GRAY2BGR);
     dflow.copyTo(eflow);
+    dflow.copyTo(ttcMap);//todo learn how to initialize the "cv::Map ttcMap"
+    //dflow.copyTo(plot);
+    plot=drawPlotAxes();
 
     this->findFOE();
 
     drawOptFlowMap(flow, eflow, 8, Scalar(0, 255, 0));
-    drawPoorDepth(flow, dflow, 1);
+    drawPoorDepth(flow, dflow, ttcMap, ttcmatrix, 1);
+
+    cout << "ttcmatrix[1][1]: " << ttcmatrix[1][1] << endl;
+
+    drawTTCMap(ttcMap, ttcmatrix, getMesuredAreaHeight());
 
     assert(!flow.empty()); //debug
     assert(!cflow.empty()); //debug
     assert(!eflow.empty()); //debug
+    assert(!ttcMap.empty()); //debug
+
+    for(int i=0; i<640; i++){
+        line(plot, Point(i, ttcmatrix[240][i]),  Point(i, ttcmatrix[240][i]),  Scalar(0,0,0));
+
+    }
+    cvNamedWindow("Window", CV_WINDOW_AUTOSIZE);
+    imshow("Window", plot); //not needed anymore since the plot is shown in QLabel
+
+    line(ttcMap, Point(0, 240),  Point(640, 240),  Scalar(255,0,0));
 
     vec.push_back(eflow);
     vec.push_back(dflow);
-    vec.push_back(flow);
+    vec.push_back(ttcMap);
+    vec.push_back(plot);
+
 
     return vec;
 }
@@ -246,7 +295,7 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 //given two frames, it depicts imprecise relative depth basing on optical flow
 void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
 
-    Mat gray1, gray2, flow, cflow;
+    Mat gray1, gray2, flow, cflow, ttcmap;
 
     cvtColor(frame1, gray1, COLOR_BGR2GRAY);
     cvtColor(frame2, gray2, COLOR_BGR2GRAY);
@@ -254,7 +303,7 @@ void RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2, Mat &pRelDepth){
     calcOpticalFlowFarneback(gray1, gray2, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
     cvtColor(gray1, cflow, COLOR_GRAY2BGR);
     drawOptFlowMap(flow, cflow, 8, Scalar(0, 255, 0));
-    drawPoorDepth(flow, pRelDepth, 1);
+    //drawPoorDepth(flow, pRelDepth, ttcmap, 1);
 
     assert(!cflow.empty()); //debug
     assert(!pRelDepth.empty()); //debug

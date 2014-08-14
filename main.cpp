@@ -1,13 +1,13 @@
 #include <QApplication>
 #include <QTextEdit>
 #include "mainwindow.h"
-#define DEVICE 0
+#define DEFAULT_DEVICE 0
 
  int main(int argv, char **args)
  {
      QApplication app(argv, args);
      MainWindow mainwindow;
-     mainwindow.robot.setupVidCaptureStream(DEVICE);
+     mainwindow.robot.setupVidCaptureStream(DEFAULT_DEVICE);
      mainwindow.show();
 
      return app.exec();

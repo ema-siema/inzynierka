@@ -120,6 +120,11 @@ void MainWindow::on_pushButton_4_clicked()
     img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
     ui->label_6->setPixmap(QPixmap::fromImage(img));
 
+    rgb = vec[2];
+    assert(!rgb.empty()); //debug
+    img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
+    ui->label_9->setPixmap(QPixmap::fromImage(img));
+
 
     //draw plot in the "Cartesian Depth Map" tab
 

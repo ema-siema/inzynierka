@@ -24,6 +24,8 @@ How to use it:
 #include <stdio.h>
 #include <stdlib.h>
 
+#define DEFAULT_X 640
+
 using namespace std;
 using namespace cv;
 
@@ -53,7 +55,7 @@ public:
     cv::Mat captureFrame();
     void setupVidCaptureStream(int _device_id);
     void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step, const Scalar& color);
-    void drawPoorDepth(Mat& flow, Mat& dflowmap, int step);
+    void drawPoorDepth(Mat& flow, Mat& dflowmap, Mat &ttcMap, double ttcmatrix[][DEFAULT_X], int step);
     void showPoorDepthInRealTime();
     cv::Mat showDepthMap();
     cv::Mat drawPlotAxes();

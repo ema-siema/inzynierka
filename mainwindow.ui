@@ -115,7 +115,7 @@
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
-      <string>Angular depth map</string>
+      <string>Time To Contact map</string>
      </attribute>
      <widget class="QLabel" name="label_9">
       <property name="geometry">
