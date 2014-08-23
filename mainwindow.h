@@ -4,6 +4,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+//#include <QtGui>
 #include "robotvision.h"
 
 
@@ -22,6 +23,10 @@ public:
     ~MainWindow();
 
 private slots:
+    void sessionOpened();
+    void readFortune();
+    void requestNewFortune();
+
     void on_pushButton_clicked();
 
     void on_pushButton_2_clicked();
@@ -44,8 +49,17 @@ private slots:
 
     void on_pushButton_5_clicked();
 
+    void on_getFortuneButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    QTcpSocket *tcpSocket;
+    QImage currentImage;
+    QString currentFortune;
+    quint16 blockSize;
+
+    QNetworkSession *networkSession;
 };
 
 #endif // MAINWINDOW_H

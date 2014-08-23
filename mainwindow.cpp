@@ -2,6 +2,9 @@
 #include "ui_mainwindow.h"
 #include <iostream>
 #include "robotvision.h"
+#include <QtNetwork>
+#include <QDebug>
+
 
 using namespace std;
 
@@ -10,6 +13,65 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+
+    QString name = QHostInfo::localHostName();
+    if (!name.isEmpty()) {
+        ui->hostCombo->addItem(name);
+        QString domain = QHostInfo::localDomainName();
+        if (!domain.isEmpty())
+            ui->hostCombo->addItem(name + QChar('.') + domain);
+    }
+    if (name != QString("localhost"))
+        ui->hostCombo->addItem(QString("localhost"));
+    // find out IP addresses of this machine
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+    // add non-localhost addresses
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+        if (!ipAddressesList.at(i).isLoopback())
+            ui->hostCombo->addItem(ipAddressesList.at(i).toString());
+    }
+    // add localhost addresses
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+        if (ipAddressesList.at(i).isLoopback())
+            ui->hostCombo->addItem(ipAddressesList.at(i).toString());
+    }
+
+
+    tcpSocket = new QTcpSocket(this);
+
+//    connect(hostCombo, SIGNAL(editTextChanged(QString)),
+//            this, SLOT(enableGetFortuneButton()));
+//    connect(portLineEdit, SIGNAL(textChanged(QString)),
+//            this, SLOT(enableGetFortuneButton()));
+//    connect(getFortuneButton, SIGNAL(clicked()),
+//            this, SLOT(requestNewFortune()));
+//    connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+
+    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readFortune()));
+
+//    connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),
+//            this, SLOT(displayError(QAbstractSocket::SocketError)));
+    QNetworkConfigurationManager manager;
+    if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
+        // Get saved network configuration
+        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+        settings.beginGroup(QLatin1String("QtNetwork"));
+        const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
+        settings.endGroup();
+
+        // If the saved network configuration is not currently discovered use the system default
+        QNetworkConfiguration config = manager.configurationFromIdentifier(id);
+        if ((config.state() & QNetworkConfiguration::Discovered) !=
+            QNetworkConfiguration::Discovered) {
+            config = manager.defaultConfiguration();
+        }
+
+        networkSession = new QNetworkSession(config, this);
+        connect(networkSession, SIGNAL(opened()), this, SLOT(sessionOpened()));
+
+        networkSession->open();
+    }
 
 }
 
@@ -83,7 +145,9 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    robot.showPoorDepthInRealTime();
+    ///robot.showPoorDepthInRealTime();
+    requestNewFortune();
+
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
@@ -176,4 +240,76 @@ void MainWindow::on_pushButton_5_clicked()
     cout<< "on_pushButton_5_clicked(): measure started" << endl; //debug
 
     robot.setInitialDepthFrame(frame);
+}
+
+void MainWindow::requestNewFortune()
+{
+    cout<< "requestNewFortune()" << endl; //debug
+
+    //ui->getFortuneButton->setEnabled(false);
+    blockSize = 0;
+    tcpSocket->abort();
+    tcpSocket->connectToHost(ui->hostCombo->currentText(),
+                             ui->portLineEdit->text().toInt());
+
+}
+
+void MainWindow::readFortune()
+{
+    QDataStream in(tcpSocket);
+    in.setVersion(QDataStream::Qt_4_0);
+
+    if (blockSize == 0) {
+        if (tcpSocket->bytesAvailable() < (int)sizeof(quint16))
+            return;
+
+        in >> blockSize;
+        qDebug() << "blockSize: " << blockSize;
+    }
+
+    if (tcpSocket->bytesAvailable() < blockSize)
+        return;
+
+    QString nextFortune;
+    in >> nextFortune;
+
+    if (nextFortune == currentFortune) {
+        QTimer::singleShot(0, this, SLOT(requestNewFortune()));
+        return;
+    }
+
+    currentFortune = nextFortune;
+    ui->statusLabel->setText(currentFortune);
+    //ui->label_6->setPixmap(QPixmap::fromImage(currentFortune));
+    //getFortuneButton->setEnabled(true);
+}
+
+void MainWindow::sessionOpened()
+{
+    cout<< "sessionOpened()" << endl; //debug
+
+    // Save the used configuration
+
+    QNetworkConfiguration config = networkSession->configuration();
+    QString id;
+    if (config.type() == QNetworkConfiguration::UserChoice)
+        id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
+    else
+        id = config.identifier();
+
+    QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
+    settings.beginGroup(QLatin1String("QtNetwork"));
+    settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
+    settings.endGroup();
+
+//    ui->statusLabel->setText(tr("This examples requires that you run the "
+//                            "Fortune Server example as well."));
+
+
+    //enableGetFortuneButton();
+}
+
+void MainWindow::on_getFortuneButton_clicked()
+{
+    requestNewFortune();
 }
