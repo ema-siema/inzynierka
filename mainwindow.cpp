@@ -1,10 +1,10 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "C:\Users\User\Documents\Visual Studio 2012\Projects\test3\testt3\GeneratedFiles\ui_mainwindow.h"
 #include <iostream>
 #include "robotvision.h"
 #include <QtNetwork>
 #include <QDebug>
-
+#include <QtWidgets/QMainWindow>
 
 using namespace std;
 
@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
 
     QString name = QHostInfo::localHostName();
     if (!name.isEmpty()) {
@@ -260,27 +259,22 @@ void MainWindow::readFortune()
     in.setVersion(QDataStream::Qt_4_0);
 
     if (blockSize == 0) {
-        if (tcpSocket->bytesAvailable() < (int)sizeof(quint16))
+        if (tcpSocket->bytesAvailable() < (int)sizeof(quint32))
             return;
 
         in >> blockSize;
-        qDebug() << "blockSize: " << blockSize;
+        qDebug() << "blockSize: " << (int)blockSize;
     }
 
     if (tcpSocket->bytesAvailable() < blockSize)
         return;
 
-    QString nextFortune;
-    in >> nextFortune;
+        QImage nextImage;
+        in >> nextImage;
 
-    if (nextFortune == currentFortune) {
-        QTimer::singleShot(0, this, SLOT(requestNewFortune()));
-        return;
-    }
-
-    currentFortune = nextFortune;
-    ui->statusLabel->setText(currentFortune);
-    //ui->label_6->setPixmap(QPixmap::fromImage(currentFortune));
+    currentImage = nextImage;
+    ///ui->statusLabel->setText(currentFortune);
+    ui->label_6->setPixmap(QPixmap::fromImage(currentImage));
     //getFortuneButton->setEnabled(true);
 }
 

@@ -1,7 +1,13 @@
 #include "robotvision.h"
-#include <cv.h>
+//#include <cv.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/video.hpp>
 #include <assert.h>
 #include <vector>
+#include<Windows.h>
+#include<ctime>
 
 #define SCALE_FACTOR 5
 #define STANDARD_FRAME_WIDTH 640 //in pixels
@@ -159,7 +165,7 @@ double calcFlowVectorLength( Point2f& fxy ){
 /*draws inacurate depth on dflowmap for user interface purposes.
 Is meant to be used with some imshow() functions .*/
 
-void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, double ttcmatrix[][640], int step) {
+void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, vector< vector<double> > ttcmatrix, int step) {
     //Modified to additionally estimate TTC
 
     double distanceFromFOE, flowVectorLength, TTC, max;
@@ -207,7 +213,7 @@ Rect RobotVision::createRectangleForMesuredArea(){
     return Rect(x, y, width, height);
 }
 
-void drawTTCMap( Mat &map, double TTCMatrix[][640], int size){
+void drawTTCMap( Mat &map, vector< vector<double> > TTCMatrix, int size){
     double max = 0, TTC;
     int col;
     Vec3b color = map.at<Vec3b>(Point(1,1));
@@ -240,9 +246,14 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 
     vector <Mat> vec;
     Mat gray1, gray2, flow, cflow, dflow, eflow, ttcMap, plot;
-    double ttcmatrix[getMesuredAreaHeight()][640];
+    //double ttcmatrix[getMesuredAreaHeight()][640];
     //usleep(1000000); //TODO do sth better... it should be connected with robot's speed
+	int num_of_col = 640;
+    int num_of_row = getMesuredAreaHeight();
+    double init_value = 0;
 
+    vector< vector<double> > ttcmatrix;
+    ttcmatrix.resize( num_of_col , vector<double>( num_of_row , init_value ) );
     Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
 
     frame1 = frame1(rect);
@@ -319,8 +330,9 @@ void RobotVision::showPoorDepthInRealTime(){
 
         if(getRobotSpeed()!=0){
             capt >> frame1; // get a new frame from camera
-            usleep(250000); //TODO do sth better...
-            capt >> frame2; // get a new frame from camera
+            //usleep(250000); //TODO do sth better...
+            Sleep(250000); 
+			capt >> frame2; // get a new frame from camera
             frame2.copyTo(result);
             estimateRelativeDepth(frame1, frame2, result);
             assert(!result.empty());

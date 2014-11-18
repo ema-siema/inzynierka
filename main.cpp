@@ -1,5 +1,6 @@
-#include <QApplication>
-#include <QTextEdit>
+//#include <QApplication>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QTextEdit>
 #include "mainwindow.h"
 #define DEFAULT_DEVICE 0
 

@@ -20,8 +20,12 @@ How to use it:
 #define ROBOTVISION_H
 
 #include <iostream>
-#include <cv.h>
-#include <highgui.h>
+//#include <cv.h>
+//#include <highgui.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <QtNetwork>
@@ -56,7 +60,7 @@ public:
     cv::Mat captureFrame();
     void setupVidCaptureStream(int _device_id);
     void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step, const Scalar& color);
-    void drawPoorDepth(Mat& flow, Mat& dflowmap, Mat &ttcMap, double ttcmatrix[][DEFAULT_X], int step);
+    void drawPoorDepth(Mat& flow, Mat& dflowmap, Mat &ttcMap, vector< vector<double> > ttcmatrix, int step);
     void showPoorDepthInRealTime();
     cv::Mat showDepthMap();
     cv::Mat drawPlotAxes();

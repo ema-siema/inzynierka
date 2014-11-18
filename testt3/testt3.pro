@@ -1,9 +1,12 @@
 TEMPLATE = app
 CONFIG += console
 CONFIG += qt
+QT += network widgets
 
-INCLUDEPATH += /usr/local/include/opencv
-INCLUDEPATH += /home/radek/Qt/5.0.2/Src/qtbase/src/widgets
+#INCLUDEPATH += /usr/local/include/opencv
+#INCLUDEPATH += /home/radek/Qt/5.0.2/Src/qtbase/src/widgets
+INCLUDEPATH += C:/opencv/opencv/build/include
+
 LIBS += -L/usr/local/lib
 LIBS += -lopencv_core
 LIBS += -lopencv_imgproc

@@ -3,7 +3,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+//#include <QMainWindow>
+#include <QtWidgets/QMainWindow>
+//#include <QtGui>
 //#include <QtGui>
 #include "robotvision.h"
 
@@ -57,7 +59,7 @@ private:
     QTcpSocket *tcpSocket;
     QImage currentImage;
     QString currentFortune;
-    quint16 blockSize;
+    quint32 blockSize;
 
     QNetworkSession *networkSession;
 };
