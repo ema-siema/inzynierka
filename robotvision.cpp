@@ -8,6 +8,7 @@
 #include <vector>
 #include<Windows.h>
 #include<ctime>
+#include <QtWidgets/QLabel>
 
 #define SCALE_FACTOR 5
 #define STANDARD_FRAME_WIDTH 640 //in pixels
@@ -97,7 +98,6 @@ int RobotVision::showWhatRobotSees(){
 //        rect = createRectangleForMesuredArea();
 //        rectangle(frame1, rect, Scalar(0, 0, 0));
         imshow("Camera_Output", frame1);
-
     }
 
     cvDestroyAllWindows();
@@ -421,3 +421,16 @@ cv::Mat RobotVision::drawPlotAxes(){
     circle(frame, Point(foe.first, foe.second), 6, Scalar(255, 0, 0));
  }
 
+ void RobotVision::timerEvent(QTimerEvent * ev) {
+   //     if (ev->timerId() == m_timer.timerId()) tick();
+}
+ void RobotVision::tick(QLabel *label){
+		QImage img;
+		 Mat frame;
+		 capt >> frame;
+        
+        assert(!frame.empty()); //debug
+        cvtColor(frame, frame, CV_BGR2RGB);
+        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+        label->setPixmap(QPixmap::fromImage(img));
+}

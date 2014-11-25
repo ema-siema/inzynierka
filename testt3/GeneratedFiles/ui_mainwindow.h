@@ -274,7 +274,7 @@ public:
         pushButton_8->raise();
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QStringLiteral("menubar"));
-        menubar->setGeometry(QRect(0, 0, 916, 26));
+        menubar->setGeometry(QRect(0, 0, 916, 21));
         menuRelative_Depth = new QMenu(menubar);
         menuRelative_Depth->setObjectName(QStringLiteral("menuRelative_Depth"));
         menuHelp = new QMenu(menubar);

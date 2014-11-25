@@ -83,17 +83,16 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     //robot.showWhatRobotSees();
+	cout <<"on_pushButton_clicked()"<<endl;
 
     Mat frame;
     QImage img;
-    while(cvWaitKey(10)!=27){
 
-        frame = robot.showWhatRobotSees2();
-        assert(!frame.empty()); //debug
-        cvtColor(frame, frame, CV_BGR2RGB);
-        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-        ui->label_7->setPixmap(QPixmap::fromImage(img));
-    }
+	frame = robot.showWhatRobotSees2();
+	robot.tick(ui->label_7);
+     robot.m_timer.start(5000, Qt::CoarseTimer, this);
+    ///while(cvWaitKey(10)!=27)
+	 cout <<"hohoszki"<<endl;
 }
 
 //the "Mesure depth one time" button
