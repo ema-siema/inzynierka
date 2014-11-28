@@ -20,11 +20,14 @@ class MainWindow : public QMainWindow
 
 public:
     RobotVision robot;
+	QTimer *timer;
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
 private slots:
+	void slot1();
+
     void sessionOpened();
     void readFortune();
     void requestNewFortune();

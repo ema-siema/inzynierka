@@ -87,10 +87,15 @@ void MainWindow::on_pushButton_clicked()
 
     Mat frame;
     QImage img;
+	//QBasicTimer m_timer;
+	//------
+	timer = new QTimer(this);
+    QObject::connect(timer, SIGNAL(timeout()), this, SLOT(slot1()));
+    timer->start(50); //time specified in ms
 
 	frame = robot.showWhatRobotSees2();
-	robot.tick(ui->label_7);
-     robot.m_timer.start(5000, Qt::CoarseTimer, this);
+	//robot.tick();
+    //robot.m_timer.start(5000, Qt::CoarseTimer, ui->label_7);
     ///while(cvWaitKey(10)!=27)
 	 cout <<"hohoszki"<<endl;
 }
@@ -306,3 +311,28 @@ void MainWindow::on_getFortuneButton_clicked()
 {
     requestNewFortune();
 }
+
+void MainWindow::slot1(){
+	std::cout << "POLSKAAA" << std::endl;
+	Mat frame;
+    QImage img;
+	frame = robot.showWhatRobotSees2();
+	cvtColor(frame, frame, CV_BGR2RGB);
+    img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+	ui->label_7->setPixmap(QPixmap::fromImage(img));
+	std::cout << "GUPODJFD" << std::endl;
+}
+/*
+class MainWindowSlots: public QMainWindow{
+	Ui::MainWindow* m_puiTmp;
+	
+	MainWindowSlots(){
+		m_puiTmp->setupUi( this );
+	}
+
+	public slots: 
+		void slot1(){
+			std::cout << "POLSKAAA" << std::endl;
+		}
+
+};*/
