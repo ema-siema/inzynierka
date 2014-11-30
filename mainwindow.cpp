@@ -36,7 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->hostCombo->addItem(ipAddressesList.at(i).toString());
     }
 
-
     tcpSocket = new QTcpSocket(this);
 
 //    connect(hostCombo, SIGNAL(editTextChanged(QString)),
@@ -82,22 +81,11 @@ MainWindow::~MainWindow()
 //the "start" button
 void MainWindow::on_pushButton_clicked()
 {
-    //robot.showWhatRobotSees();
 	cout <<"on_pushButton_clicked()"<<endl;
 
-    Mat frame;
-    QImage img;
-	//QBasicTimer m_timer;
-	//------
 	timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(slot1()));
-    timer->start(50); //time specified in ms
-
-	frame = robot.showWhatRobotSees2();
-	//robot.tick();
-    //robot.m_timer.start(5000, Qt::CoarseTimer, ui->label_7);
-    ///while(cvWaitKey(10)!=27)
-	 cout <<"hohoszki"<<endl;
+    timer->start(3000); //time specified in ms
 }
 
 //the "Mesure depth one time" button
@@ -247,7 +235,7 @@ void MainWindow::on_pushButton_5_clicked()
 
 void MainWindow::requestNewFortune()
 {
-    cout<< "requestNewFortune()" << endl; //debug
+	qDebug() << "requestNewFortune()"; //debug
 
     //ui->getFortuneButton->setEnabled(false);
     blockSize = 0;
@@ -312,27 +300,23 @@ void MainWindow::on_getFortuneButton_clicked()
     requestNewFortune();
 }
 
-void MainWindow::slot1(){
-	std::cout << "POLSKAAA" << std::endl;
+void MainWindow::slot1(){//dobre i dzialajace, ale tylko lokalnie
 	Mat frame;
     QImage img;
 	frame = robot.showWhatRobotSees2();
 	cvtColor(frame, frame, CV_BGR2RGB);
     img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
 	ui->label_7->setPixmap(QPixmap::fromImage(img));
-	std::cout << "GUPODJFD" << std::endl;
 }
+
 /*
-class MainWindowSlots: public QMainWindow{
-	Ui::MainWindow* m_puiTmp;
-	
-	MainWindowSlots(){
-		m_puiTmp->setupUi( this );
-	}
-
-	public slots: 
-		void slot1(){
-			std::cout << "POLSKAAA" << std::endl;
-		}
-
-};*/
+void MainWindow::slot1(){
+	//Mat frame;
+    //QImage img;
+	requestNewFortune();
+	timer->stop();
+	//frame = robot.showWhatRobotSees2();
+	//cvtColor(frame, frame, CV_BGR2RGB);
+    //img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+	//ui->label_7->setPixmap(QPixmap::fromImage(img));
+}*/

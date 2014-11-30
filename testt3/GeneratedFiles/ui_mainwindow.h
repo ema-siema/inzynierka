@@ -288,10 +288,11 @@ public:
         menubar->addAction(menuHelp->menuAction());
 
         retranslateUi(MainWindow);
+        QObject::connect(pushButton, SIGNAL(clicked()), MainWindow, SLOT(slot1()));
 
         tabWidget->setCurrentIndex(4);
         tabWidget_2->setCurrentIndex(1);
-        ConnectionTab->setCurrentIndex(2);
+        ConnectionTab->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
