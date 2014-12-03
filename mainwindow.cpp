@@ -85,7 +85,7 @@ void MainWindow::on_pushButton_clicked()
 
 	timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(slot1()));
-    timer->start(3000); //time specified in ms
+    timer->start(250); //time specified in ms
 }
 
 //the "Mesure depth one time" button
@@ -261,12 +261,22 @@ void MainWindow::readFortune()
     if (tcpSocket->bytesAvailable() < blockSize)
         return;
 
-        QImage nextImage;
-        in >> nextImage;
+		qint64 imagesInQue = tcpSocket->bytesToWrite()/blockSize;
+    int maxPendingImages = 10;
+    if(imagesInQue > maxPendingImages)
+    {
+        std::cout << "Dumping." << std::endl;
+        return;
+    }
 
-    currentImage = nextImage;
+    QImage nextImage;
+    in >> nextImage;
+
+
+	//qDebug() << "blockSize2: " << (int)blockSize;
+    //currentImage = nextImage;
     ///ui->statusLabel->setText(currentFortune);
-    ui->label_6->setPixmap(QPixmap::fromImage(currentImage));
+    ui->label_6->setPixmap(QPixmap::fromImage(nextImage));
     //getFortuneButton->setEnabled(true);
 }
 

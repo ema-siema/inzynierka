@@ -9,7 +9,6 @@
 //#include <QtGui>
 #include "robotvision.h"
 
-
 namespace Ui {
 class MainWindow;
 }

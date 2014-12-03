@@ -8,7 +8,7 @@
  {
      QApplication app(argv, args);
      MainWindow mainwindow;
-     mainwindow.robot.setupVidCaptureStream(DEFAULT_DEVICE);
+    // mainwindow.robot.setupVidCaptureStream(DEFAULT_DEVICE);
      mainwindow.show();
 
      return app.exec();

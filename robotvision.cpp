@@ -353,7 +353,7 @@ Mat RobotVision::captureFrame(){
 /*If there is only one camera, set _device_id to 0*/
 void RobotVision::setupVidCaptureStream(int _device_id){
     // credits to: http://stackoverflow.com/questions/9356987/opencv-videocapture-wrapper-class
-    device_id = _device_id;
+    device_id = _device_id;	//zlooo
     capt = cv::VideoCapture(device_id);
 
     cout << "Checking device" << endl;
