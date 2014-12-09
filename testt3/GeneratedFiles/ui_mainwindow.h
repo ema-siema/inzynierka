@@ -292,7 +292,7 @@ public:
 
         tabWidget->setCurrentIndex(4);
         tabWidget_2->setCurrentIndex(1);
-        ConnectionTab->setCurrentIndex(1);
+        ConnectionTab->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(MainWindow);

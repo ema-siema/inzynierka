@@ -1,0 +1,28 @@
+﻿Build started 2014-12-09 19:47:11.
+     1>Project "C:\Users\User\Documents\Visual Studio 2012\Projects\test3\testt3\testt3.vcxproj" on node 2 (Build target(s)).
+     1>CustomBuild:
+         Moc'ing mainwindow.h...
+         Uic'ing ..\mainwindow.ui...
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /IC:\opencv\opencv\build\include /IC:\qt\5.3\msvc2012_opengl\include /IC:\qt\5.3\msvc2012_opengl\include\QtNetwork /IC:\qt\5.3\msvc2012_opengl\include\QtGui /IC:\qt\5.3\msvc2012_opengl\include\QtCore /Irelease /I"C:\qt\5.3\msvc2012_opengl\mkspecs\win32-msvc2012" /nologo /W3 /WX- /O2 /Oy- /D _CONSOLE /D UNICODE /D WIN32 /D QT_NO_DEBUG /D QT_WIDGETS_LIB /D QT_NETWORK_LIB /D QT_GUI_LIB /D QT_CORE_LIB /D NDEBUG /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"Win32\Release\\" /Fd"Win32\Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt -Zm200 -w34100 -w34189 ..\main.cpp ..\mainwindow.cpp ..\robotvision.cpp
+         main.cpp
+         mainwindow.cpp
+         robotvision.cpp
+     1>..\robotvision.cpp(168): warning C4100: 'ttcMap' : unreferenced formal parameter
+     1>..\robotvision.cpp(217): warning C4101: 'TTC' : unreferenced local variable
+     1>..\robotvision.cpp(307): warning C4100: 'pRelDepth' : unreferenced formal parameter
+     1>..\robotvision.cpp(424): warning C4100: 'ev' : unreferenced formal parameter
+         Generating Code...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"release\\testt3.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\Qt\5.3\msvc2012_opengl\lib /LIBPATH:C:\opencv\opencv\build\x86\vc11\lib glu32.lib opengl32.lib opencv_video249.lib opencv_core249.lib opencv_imgproc249.lib opencv_highgui249.lib opencv_features2d249.lib C:\Qt\5.3\msvc2012_opengl\lib\Qt5Network.lib C:\Qt\5.3\msvc2012_opengl\lib\Qt5Gui.lib C:\Qt\5.3\msvc2012_opengl\lib\Qt5Core.lib C:\Qt\5.3\msvc2012_opengl\lib\qtmain.lib C:\Qt\5.3\msvc2012_opengl\lib\Qt5Widgets.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:"release\testt3.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /MACHINE:X86 /SAFESEH "/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" Win32\Release\main.obj
+         Win32\Release\mainwindow.obj
+         Win32\Release\robotvision.obj
+     1>mainwindow.obj : error LNK2001: unresolved external symbol "public: virtual struct QMetaObject const * __thiscall MainWindow::metaObject(void)const " (?metaObject@MainWindow@@UBEPBUQMetaObject@@XZ)
+     1>mainwindow.obj : error LNK2001: unresolved external symbol "public: virtual void * __thiscall MainWindow::qt_metacast(char const *)" (?qt_metacast@MainWindow@@UAEPAXPBD@Z)
+     1>mainwindow.obj : error LNK2001: unresolved external symbol "public: virtual int __thiscall MainWindow::qt_metacall(enum QMetaObject::Call,int,void * *)" (?qt_metacall@MainWindow@@UAEHW4Call@QMetaObject@@HPAPAX@Z)
+     1>release\\testt3.exe : fatal error LNK1120: 3 unresolved externals
+     1>Done Building Project "C:\Users\User\Documents\Visual Studio 2012\Projects\test3\testt3\testt3.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:23.05

@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "C:\Users\User\Documents\Visual Studio 2012\Projects\test3\testt3\GeneratedFiles\ui_mainwindow.h"
+#include "ui_mainwindow.h"
 #include <iostream>
 #include "robotvision.h"
 #include <QtNetwork>
@@ -226,11 +226,14 @@ void MainWindow::on_StartButton_clicked()
 //the 'start measurement' button
 void MainWindow::on_pushButton_5_clicked()
 {
+	    cout<< "on_pushButton_5_clicked(): measure started" << endl; //debug
     Mat frame;
     robot.capt >>  frame;
     cout<< "on_pushButton_5_clicked(): measure started" << endl; //debug
-
+	//here
     robot.setInitialDepthFrame(frame);
+	QImage img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+	    ui->label_6->setPixmap(QPixmap::fromImage(img));
 }
 
 void MainWindow::requestNewFortune()

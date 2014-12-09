@@ -415,7 +415,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_8">
      <attribute name="title">
@@ -458,6 +458,19 @@
       </property>
       <property name="text">
        <string>End measurement</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>70</y>
+        <width>70</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>heheszki</string>
       </property>
      </widget>
     </widget>
