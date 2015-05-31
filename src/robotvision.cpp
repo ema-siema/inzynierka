@@ -1,14 +1,8 @@
 #include "robotvision.h"
-//#include <cv.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/video/video.hpp>
+#include <cv.h>
 #include <assert.h>
 #include <vector>
-#include<Windows.h>
-#include<ctime>
-#include <QtWidgets/QLabel>
+#include <windows.h>
 
 #define SCALE_FACTOR 5
 #define STANDARD_FRAME_WIDTH 640 //in pixels
@@ -19,23 +13,19 @@
 
 using namespace cv;
 
-double RobotVision::getRobotSpeed() const
-{
+double RobotVision::getRobotSpeed() const{
     return robotSpeed;
 }
 
-void RobotVision::setRobotSpeed(double value)
-{
+void RobotVision::setRobotSpeed(double value){
     robotSpeed = value;
 }
 
-int RobotVision::getMesuredAreaWidth() const
-{
+int RobotVision::getMesuredAreaWidth() const{
     return mesuredAreaWidth;
 }
 
-void RobotVision::setMesuredAreaWidth(int value)
-{
+void RobotVision::setMesuredAreaWidth(int value){
     mesuredAreaWidth = value;
 }
 
@@ -98,6 +88,7 @@ int RobotVision::showWhatRobotSees(){
 //        rect = createRectangleForMesuredArea();
 //        rectangle(frame1, rect, Scalar(0, 0, 0));
         imshow("Camera_Output", frame1);
+
     }
 
     cvDestroyAllWindows();
@@ -330,9 +321,8 @@ void RobotVision::showPoorDepthInRealTime(){
 
         if(getRobotSpeed()!=0){
             capt >> frame1; // get a new frame from camera
-            //usleep(250000); //TODO do sth better...
-            Sleep(250000); 
-			capt >> frame2; // get a new frame from camera
+            Sleep(2500); //TODO do sth better...
+            capt >> frame2; // get a new frame from camera
             frame2.copyTo(result);
             estimateRelativeDepth(frame1, frame2, result);
             assert(!result.empty());
@@ -353,7 +343,7 @@ Mat RobotVision::captureFrame(){
 /*If there is only one camera, set _device_id to 0*/
 void RobotVision::setupVidCaptureStream(int _device_id){
     // credits to: http://stackoverflow.com/questions/9356987/opencv-videocapture-wrapper-class
-    device_id = _device_id;	//zlooo
+    device_id = _device_id;
     capt = cv::VideoCapture(device_id);
 
     cout << "Checking device" << endl;
@@ -421,13 +411,3 @@ cv::Mat RobotVision::drawPlotAxes(){
     circle(frame, Point(foe.first, foe.second), 6, Scalar(255, 0, 0));
  }
 
- void RobotVision::tick(QLabel *label){
-		QImage img;
-		 Mat frame;
-		 capt >> frame;
-        
-        assert(!frame.empty()); //debug
-        cvtColor(frame, frame, CV_BGR2RGB);
-        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-        label->setPixmap(QPixmap::fromImage(img));
-}

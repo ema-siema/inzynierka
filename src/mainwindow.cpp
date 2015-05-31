@@ -1,10 +1,7 @@
 #include "mainwindow.h"
-#include "C:\Users\User\Documents\projekty\inzynierka\testt3\GeneratedFiles\ui_mainwindow.h"
+#include "ui_mainwindow.h"
 #include <iostream>
 #include "robotvision.h"
-//#include <QtNetwork>
-#include <QDebug>
-#include <QtWidgets/QMainWindow>
 
 using namespace std;
 
@@ -13,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
 }
 
 MainWindow::~MainWindow()
@@ -23,7 +21,18 @@ MainWindow::~MainWindow()
 //the "start" button
 void MainWindow::on_pushButton_clicked()
 {
-	cout <<"on_pushButton_clicked()"<<endl;
+    //robot.showWhatRobotSees();
+	cout << "sztart" <<endl;
+    Mat frame;
+    QImage img;
+    while(cvWaitKey(10)!=27){
+		cout << "ke?" <<endl;
+        frame = robot.showWhatRobotSees2();
+        assert(!frame.empty()); //debug
+        cvtColor(frame, frame, CV_BGR2RGB);
+        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+        ui->label_7->setPixmap(QPixmap::fromImage(img));
+    }
 }
 
 //the "Mesure depth one time" button
@@ -74,9 +83,7 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    ///robot.showPoorDepthInRealTime();
-    requestNewFortune();
-
+    robot.showPoorDepthInRealTime();
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
@@ -159,64 +166,14 @@ void MainWindow::on_mesuredWidthSlider_valueChanged(int value)
 void MainWindow::on_StartButton_clicked()
 {
 
-}
 
+}
 //the 'start measurement' button
 void MainWindow::on_pushButton_5_clicked()
 {
     Mat frame;
     robot.capt >>  frame;
     cout<< "on_pushButton_5_clicked(): measure started" << endl; //debug
-	//here
+
     robot.setInitialDepthFrame(frame);
-	QImage img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-	    ui->label_6->setPixmap(QPixmap::fromImage(img));
 }
-
-void MainWindow::requestNewFortune()
-{
-	qDebug() << "requestNewFortune()"; //debug
-
-}
-
-void MainWindow::readFortune()
-{
-	qDebug() << "blockSize2: " << (int)blockSize;
-}
-
-void MainWindow::sessionOpened()
-{
-    cout<< "sessionOpened()" << endl; //debug
-
-//    ui->statusLabel->setText(tr("This examples requires that you run the "
-//                            "Fortune Server example as well."));
-
-
-    //enableGetFortuneButton();
-}
-
-void MainWindow::on_getFortuneButton_clicked()
-{
-    requestNewFortune();
-}
-
-void MainWindow::slot1(){//dobre i dzialajace, ale tylko lokalnie
-	Mat frame;
-    QImage img;
-	frame = robot.showWhatRobotSees2();
-	cvtColor(frame, frame, CV_BGR2RGB);
-    img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-	ui->label_7->setPixmap(QPixmap::fromImage(img));
-}
-
-/*
-void MainWindow::slot1(){
-	//Mat frame;
-    //QImage img;
-	requestNewFortune();
-	timer->stop();
-	//frame = robot.showWhatRobotSees2();
-	//cvtColor(frame, frame, CV_BGR2RGB);
-    //img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-	//ui->label_7->setPixmap(QPixmap::fromImage(img));
-}*/

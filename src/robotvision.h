@@ -18,20 +18,11 @@ How to use it:
 
 #ifndef ROBOTVISION_H
 #define ROBOTVISION_H
-
 #include <iostream>
-//#include <cv.h>
-//#include <highgui.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
+#include <cv.h>
+#include <highgui.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <QtNetwork>
-#include <QtWidgets/QMainWindow>
-#include <QDebug>
-#include <QtWidgets/QLabel>
 
 #define DEFAULT_X 640
 
@@ -51,6 +42,7 @@ private:
     Mat lastDepthFrame;
 
 public:
+
     VideoCapture capt;
     pair <int, int> FOE; // first = x, second = y
 
@@ -71,9 +63,7 @@ public:
     pair <int, int> findFOE();
     void drawFOE(pair <int, int> foe, Mat &frame);
     double calcDistanceFromFOE(int x, int y);
-	//QBasicTimer m_timer;
-	//void timerEvent(QTimerEvent * ev);
-	void tick(QLabel *label);
+
 
     //getters and setters
     int getMesuredAreaWidth() const;
