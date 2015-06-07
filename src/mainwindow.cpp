@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <iostream>
 #include "robotvision.h"
+#define _ITERATOR_DEBUG_LEVEL = 2
 
 using namespace std;
 
@@ -25,7 +26,7 @@ void MainWindow::on_pushButton_clicked()
 	cout << "sztart" <<endl;
     Mat frame;
     QImage img;
-    while(cvWaitKey(10)!=27){
+    while(!waitKey(0)){
 		cout << "ke?" <<endl;
         frame = robot.showWhatRobotSees2();
         assert(!frame.empty()); //debug
@@ -98,7 +99,6 @@ void MainWindow::on_pushButton_4_clicked()
     QImage img;
     vector <Mat> vec;
     pair <int, int> foe;
-
     robot.capt >>  frame;
 
     cout<< "on_pushButton_4_clicked(): measure ended" << endl;
@@ -107,8 +107,17 @@ void MainWindow::on_pushButton_4_clicked()
     robot.getLastDepthFrame().copyTo(frame2);
     robot.getInitialDepthFrame().copyTo(frame1);
 
-    vec = robot.estimateRelativeDepth(frame1, frame2);
+	//imshow("frame1", frame1);
+	//imshow("frame2", frame2);
+	//imwrite("frame1.jpg", frame1);
+	//imwrite("frame2.jpg", frame2);
 
+    assert(!frame1.empty()); //debug
+    assert(!frame2.empty()); //debug
+
+
+    vec = robot.estimateRelativeDepth(frame1, frame2);
+	cout << "juz po estimate" <<endl;
     rgb = vec[1];
     robot.drawFOE(robot.findFOE(), rgb);    //todo change findFOE to some getFOE
     assert(!rgb.empty()); //debug
@@ -128,7 +137,8 @@ void MainWindow::on_pushButton_4_clicked()
 
     //draw plot in the "Cartesian Depth Map" tab
 
-    rgb = robot.showDepthMap();
+	    rgb = vec[3];
+    //rgb = robot.showDepthMap(); //to by³o w wersji sprzed przenosin -> CZEMU???!
     assert(!rgb.empty()); //debug
 
     img = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, QImage::Format_RGB888);
