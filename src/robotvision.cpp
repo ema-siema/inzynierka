@@ -157,7 +157,7 @@ double RobotVision::calcDistanceFromFOE(int x, int y){
     return result;
 }
 
-double calcFlowVectorLength( Point2f& fxy ){
+double calcFlowVectorLength( Point2f fxy ){
 
     return ( sqrt( (fxy.x)*(fxy.x) + (fxy.y)*(fxy.y) ) );
 }
@@ -165,23 +165,30 @@ double calcFlowVectorLength( Point2f& fxy ){
 /*draws inacurate depth on dflowmap for user interface purposes.
 Is meant to be used with some imshow() functions .*/
 
-void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, vector< vector<double> > ttcmatrix, int step) {
+void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, vector< vector<double> > &ttcmatrix, int step) {
     //Modified to additionally estimate TTC
-
+	cout << "drawPoorDepth()" << endl;
     double distanceFromFOE, flowVectorLength, TTC, max;
     max = 0;
+	assert(!flow.empty());
+	assert(!dflowmap.empty());
+	assert(!ttcMap.empty());
+	cout << "dflowmap" << dflowmap.rows<<endl;
+	cout << "dflowmap" << dflowmap.cols<<endl;
+	cout << "step" << step;
+    int debugCounter=0;
 
-    for(int y = 0; y < dflowmap.rows; y += step)
+	for(int y = 0; y < dflowmap.rows; y += step)
         for(int x = 0; x < dflowmap.cols; x += step)
         {
-            Point2f& fxy = flow.at<Point2f>(y, x);
+            Point2f fxy = flow.at<Point2f>(y, x);
             Vec3b color = flow.at<Vec3b>(Point(x,y));
-
+			debugCounter++;
             flowVectorLength = calcFlowVectorLength(fxy);
-//            cout << "flowVectorLength: " << flowVectorLength << endl;
-
+            //cout << "flowVectorLength: " << flowVectorLength << endl;
+			//cout << "debugCounter: " << debugCounter << endl;
             distanceFromFOE = calcDistanceFromFOE(x, y);
-//            cout << "distanceFromFOE: " << distanceFromFOE << endl;
+            //cout << "distanceFromFOE: " << distanceFromFOE << endl;
 
             if(flowVectorLength < 1) flowVectorLength=0;
 
@@ -190,13 +197,14 @@ void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, vector<
             else TTC = -1;
             //cout <<" TTC "<< TTC <<endl;
             if(TTC > max) max = TTC;
-            ttcmatrix[y][x] = TTC;
+            ttcmatrix[x][y] = TTC;
 
-            color[0] = flowVectorLength*SCALE_FACTOR;
-            color[1] = flowVectorLength*SCALE_FACTOR;
-            color[2] = flowVectorLength*SCALE_FACTOR;
-            dflowmap.at<Vec3b>(Point(x,y)) = color;
-        }
+            //color[0] = flowVectorLength*SCALE_FACTOR;
+            //color[1] = flowVectorLength*SCALE_FACTOR;
+            //color[2] = flowVectorLength*SCALE_FACTOR;
+            //dflowmap.at<Vec3b>(Point(x,y)) = color;
+		}
+
     cout << "max: " << max<< endl;
 }
 
@@ -220,18 +228,21 @@ void drawTTCMap( Mat &map, vector< vector<double> > TTCMatrix, int size){
 
     for(int x=0; x<640; x++)
         for(int y=0; y<size; y++ ){
-           if(TTCMatrix[y][x] > max ) max = TTCMatrix[y][x];
+           if(TTCMatrix[x][y] > max ) max = TTCMatrix[x][y];
            //cout<< "TTCMatrix"<<TTCMatrix[y][x] << endl;
         }
 
     cout <<"maxo"<<max<<endl;
     max=2*max;
+	if(max<=0) {
+		max = 1;
+	}
 
     for(int x=0; x<640; x++)
         for(int y=0; y<size; y++ ){
 
-           if(TTCMatrix[y][x] == -1 ) TTCMatrix[y][x] = max;
-           col = 255*TTCMatrix[y][x]/max;
+           if(TTCMatrix[x][y] == -1 ) TTCMatrix[x][y] = max;
+           col = 255*TTCMatrix[x][y]/max;
            //cout << "col " << col <<endl;
 
            color[0] = 255-col;    //todo maybe use some nonlinear function for pixel brightness setting?
@@ -243,7 +254,6 @@ void drawTTCMap( Mat &map, vector< vector<double> > TTCMatrix, int size){
 
 
 vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
-
     vector <Mat> vec;
     Mat gray1, gray2, flow, cflow, dflow, eflow, ttcMap, plot;
     //double ttcmatrix[getMesuredAreaHeight()][640];
@@ -251,18 +261,21 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 	int num_of_col = 640;
     int num_of_row = getMesuredAreaHeight();
     double init_value = 0;
-
+	cout << "estimate raz " <<endl;
     vector< vector<double> > ttcmatrix;
     ttcmatrix.resize( num_of_col , vector<double>( num_of_row , init_value ) );
     Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
+		cout << "estimate dwa " <<endl;
 
     frame1 = frame1(rect);
     frame2 = frame2(rect);
 
     cvtColor(frame1, gray1, COLOR_BGR2GRAY);
     cvtColor(frame2, gray2, COLOR_BGR2GRAY);
+		cout << "estimate tszy " <<endl;
 
     calcOpticalFlowFarneback(gray1, gray2, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+	cout << "estimate cztery " <<endl;
 
     cvtColor(gray1, cflow, COLOR_GRAY2BGR);
     cvtColor(gray2, dflow, COLOR_GRAY2BGR);
@@ -270,27 +283,37 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     dflow.copyTo(ttcMap);//todo learn how to initialize the "cv::Map ttcMap"
     //dflow.copyTo(plot);
     plot=drawPlotAxes();
+	cout << "estimate pierc " <<endl;
 
     this->findFOE();
+		cout << "estimate pierc i pol" <<endl;
 
     drawOptFlowMap(flow, eflow, 8, Scalar(0, 255, 0));
+		cout << "estimate pierc i czy tszwarte " <<endl;
+
     drawPoorDepth(flow, dflow, ttcMap, ttcmatrix, 1);
+	cout << "estimate szesc " <<endl;
 
     cout << "ttcmatrix[1][1]: " << ttcmatrix[1][1] << endl;
 
     drawTTCMap(ttcMap, ttcmatrix, getMesuredAreaHeight());
+		cout << "estimate siem " <<endl;
 
     assert(!flow.empty()); //debug
     assert(!cflow.empty()); //debug
     assert(!eflow.empty()); //debug
     assert(!ttcMap.empty()); //debug
+	cout << "estimate 8 " <<endl;
 
     for(int i=0; i<640; i++){
-        line(plot, Point(i, ttcmatrix[240][i]),  Point(i, ttcmatrix[240][i]),  Scalar(0,0,0));
+        line(plot, Point(i, ttcmatrix[i][240]),  Point(i, ttcmatrix[i][240]),  Scalar(0,0,0));
 
     }
+	cout << "estimate 9 " <<endl;
+
     cvNamedWindow("Window", CV_WINDOW_AUTOSIZE);
     imshow("Window", plot); //not needed anymore since the plot is shown in QLabel
+		cout << "estimate 10 " <<endl;
 
     line(ttcMap, Point(0, 240),  Point(640, 240),  Scalar(255,0,0));
 
@@ -299,6 +322,7 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     vec.push_back(ttcMap);
     vec.push_back(plot);
 
+		cout << "estimate 11 " <<endl;
 
     return vec;
 }
