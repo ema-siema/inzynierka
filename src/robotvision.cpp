@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <vector>
 #include <windows.h>
+#include <fstream>
 
 #define SCALE_FACTOR 5
 #define STANDARD_FRAME_WIDTH 640 //in pixels
@@ -37,6 +38,7 @@ int RobotVision::getMesuredAreaHeight() const
 void RobotVision::setMesuredAreaHeight(int value)
 {
     mesuredAreaHeight = value;
+	//estimationXCoordinate = this->mesuredAreaVerticalPosition + this->mesuredAreaHeight/2;
 }
 
 
@@ -67,14 +69,19 @@ int RobotVision::getMesuredAreaVerticalPosition() const
 
 void RobotVision::setMesuredAreaVerticalPosition(int value)
 {
-    mesuredAreaVerticalPosition = value;
+    //mesuredAreaVerticalPosition = value;
+	//estimationXCoordinate = this->mesuredAreaVerticalPosition + this->mesuredAreaHeight/2;
+	estimationXCoordinate = value;
 }
+
 RobotVision::RobotVision()
 {
     device_id = 0;
     robotSpeed = 0;
     mesuredAreaHeight = STANDARD_FRAME_HEIGHT;
     mesuredAreaWidth = STANDARD_FRAME_WIDTH;
+	mesuredAreaVerticalPosition = 0;
+	estimationXCoordinate = 0;
 }
 
 int RobotVision::showWhatRobotSees(){
@@ -106,6 +113,8 @@ Mat RobotVision::showWhatRobotSees2(){
     capt >> frame; // get a new frame from camera
     rect = createRectangleForMesuredArea();
     rectangle(frame, rect, Scalar(0, 255, 0));
+	line(frame, Point(0, estimationXCoordinate),  Point(640, estimationXCoordinate),  Scalar(255,0,0)); //red line on ttcMap
+
 
     return frame;
 }
@@ -204,9 +213,20 @@ void RobotVision::drawPoorDepth ( Mat &flow, Mat &dflowmap, Mat &ttcMap, vector<
 Rect RobotVision::createRectangleForMesuredArea(){
 
     int x = 0,
-        y = (STANDARD_FRAME_HEIGHT - this->mesuredAreaHeight)/2,
-        width = STANDARD_FRAME_WIDTH,
-        height = this->mesuredAreaHeight;
+    //y = (STANDARD_FRAME_HEIGHT - this->mesuredAreaHeight)/2,
+    y = this->getMesuredAreaVerticalPosition(),
+	width = STANDARD_FRAME_WIDTH,
+    height = this->mesuredAreaHeight,
+	yMax = STANDARD_FRAME_HEIGHT - this->mesuredAreaHeight;
+
+	//cout << "elo " << yMax << " " << y << " "<< this->getMesuredAreaVerticalPosition() << " " <<endl;
+	//y = y + this->getMesuredAreaVerticalPosition();
+	if(y >= yMax){
+		y = yMax-1;
+	}
+	if(y <= 0){
+		y = 0;
+    }
 
     //cout << "createRectangleForMesuredArea " << y << endl; //debug
     return Rect(x, y, width, height);
@@ -255,7 +275,9 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
 	cout << "estimate raz " <<endl;
     vector< vector<double> > ttcmatrix;
     ttcmatrix.resize( num_of_col , vector<double>( num_of_row , init_value ) );
-    Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
+	ttcmatrix.resize( num_of_col , vector<double>( num_of_row , init_value ) );
+
+	Rect rect = createRectangleForMesuredArea();    //TODO change the word 'rectangle' for 'borders' maybe?
 		cout << "estimate dwa " <<endl;
 
     frame1 = frame1(rect);
@@ -296,24 +318,41 @@ vector <Mat> RobotVision::estimateRelativeDepth(Mat frame1, Mat frame2){
     assert(!ttcMap.empty()); //debug
 	cout << "estimate 8 " <<endl;
 
-    for(int i=0; i<640; i++){
-        line(plot, Point(i, ttcmatrix[i][240]),  Point(i, ttcmatrix[i][240]),  Scalar(0,0,0));
+	double minTemp = 100000000, maxTemp = 0, tempFactor = 0; 
 
+	for(int i=0; i<640; i++){
+		if(ttcmatrix[i][estimationXCoordinate] > maxTemp){
+			maxTemp = ttcmatrix[i][estimationXCoordinate];
+		}
+		if(ttcmatrix[i][estimationXCoordinate] < minTemp){
+			minTemp = ttcmatrix[i][estimationXCoordinate];
+		}
     }
+
+	tempFactor = (maxTemp - minTemp - 100)/250; //uwaga 100 - sta³a Kowalskiego!!
+
+	ofstream logStream;
+	logStream.open("robotVision.log");
+
+    for(int i=0; i<640; i+=2){
+
+		logStream <<  "ttcmatrix[i][estimationXCoordinate]" <<  ttcmatrix[i][estimationXCoordinate] << endl;
+		cout << " ttcmatrix[i][estimationXCoordinate]" <<  ttcmatrix[i][estimationXCoordinate] << endl;
+        line(plot, Point(i, ttcmatrix[i][estimationXCoordinate]/tempFactor),  Point(i+1, ttcmatrix[i+1][estimationXCoordinate]/tempFactor),  Scalar(0,0,0));
+    }
+	logStream.close();
 	cout << "estimate 9 " <<endl;
 
     cvNamedWindow("Window", CV_WINDOW_AUTOSIZE);
     imshow("Window", plot); //not needed anymore since the plot is shown in QLabel
-		cout << "estimate 10 " <<endl;
+	cout << "estimate 10 " <<endl;
 
-    line(ttcMap, Point(0, 240),  Point(640, 240),  Scalar(255,0,0));
+    line(ttcMap, Point(0, estimationXCoordinate),  Point(640, estimationXCoordinate),  Scalar(255,0,0)); //red line on ttcMap
 
     vec.push_back(eflow);
     vec.push_back(dflow);
     vec.push_back(ttcMap);
     vec.push_back(plot);
-
-		cout << "estimate 11 " <<endl;
 
     return vec;
 }

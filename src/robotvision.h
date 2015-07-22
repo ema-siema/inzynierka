@@ -38,12 +38,14 @@ private:
     int mesuredAreaWidth;
     int mesuredAreaHeight;
     int mesuredAreaVerticalPosition;
-    Mat initialDepthFrame;
+	int estimationXCoordinate;
+	Mat initialDepthFrame;
     Mat lastDepthFrame;
 
 public:
 
     VideoCapture capt;
+	Mat capt2;
     pair <int, int> FOE; // first = x, second = y
 
     RobotVision();

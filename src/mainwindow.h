@@ -29,6 +29,8 @@ private slots:
     void on_pushButton_3_clicked();
 
     void on_horizontalSlider_valueChanged(int value);
+	
+    void on_horizontalSlider_2_valueChanged(int value);
 
     void on_pushButton_4_clicked();
 

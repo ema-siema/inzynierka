@@ -62,9 +62,9 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>250</x>
       <y>0</y>
-      <width>671</width>
+      <width>661</width>
       <height>531</height>
      </rect>
     </property>
@@ -262,6 +262,12 @@
         <width>131</width>
         <height>29</height>
        </rect>
+      </property>
+      <property name="minimum">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <number>480</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -546,7 +552,7 @@
      <x>0</x>
      <y>0</y>
      <width>916</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuRelative_Depth">
