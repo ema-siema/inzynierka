@@ -4,8 +4,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
 #include "robotvision.h"
-
+#include "Source.h"
 
 namespace Ui {
 class MainWindow;
@@ -16,10 +17,21 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    RobotVision robot;
+    RobotVision robot;	 
+	QThread *thread;
+    Worker *worker;
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+	//void servershow();
+
+
+signals:
+    //void SigUpdateTransmissionWindow(QLabel *l, Mat m);
+	void SigUpdateTransmissionWindow();
+
+	public slots:
+			void onProgressChagned();
 
 private slots:
     void on_pushButton_clicked();
@@ -45,6 +57,8 @@ private slots:
     void on_StartButton_clicked();
 
     void on_pushButton_5_clicked();
+
+
 
 private:
     Ui::MainWindow *ui;
