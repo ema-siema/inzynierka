@@ -26,13 +26,6 @@ public:
 	//void servershow();
 
 
-signals:
-    //void SigUpdateTransmissionWindow(QLabel *l, Mat m);
-	void SigUpdateTransmissionWindow();
-
-	public slots:
-			void onProgressChagned();
-
 private slots:
     void on_pushButton_clicked();
 

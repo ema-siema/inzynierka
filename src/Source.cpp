@@ -5,6 +5,16 @@
 
 #include <QThread>
 #include <QDebug>
+#include <boost/asio.hpp>
+#include <boost/array.hpp>
+#include <boost/thread/thread.hpp>
+
+#include <cv.h>
+
+using boost::asio::ip::tcp;
+using namespace cv;
+
+Mat img = Mat::zeros(640, 480, CV_8UC3);
 
 Worker::Worker(QObject *parent) :
     QObject(parent)
@@ -34,29 +44,57 @@ void Worker::abort()
     mutex.unlock();
 }
 
+void servershow(){
+
+}
+
 void Worker::doWork()
 {
     qDebug()<<"Starting worker process in Thread "<<thread()->currentThreadId();
 
-    for (int i = 0; i < 60; i ++) {
 
-        // Checks if the process should be aborted
-        mutex.lock();
-        bool abort = _abort;
-        mutex.unlock();
+	try{
+        boost::asio::io_service io_service;
+        boost::array<char, 921600> buf;         /* the size of reciev mat frame is caculate by 320*240*3 */
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 3200));
 
-        if (abort) {
-            qDebug()<<"Aborting worker process in Thread "<<thread()->currentThreadId();
-            break;
+        for (int i = 0; i < 60; i ++){
+
+				mutex.lock();
+				bool abort = _abort;
+				mutex.unlock();
+
+				if (abort) {
+					qDebug()<<"Aborting worker process in Thread "<<thread()->currentThreadId();
+					break;
+				}
+
+				tcp::socket socket(io_service);
+				acceptor.accept(socket);
+				boost::system::error_code error;
+				size_t len = socket.read_some(boost::asio::buffer(buf), error);
+				std::cout<<"get data length :"<<len<<endl; /* disp the data size recieved */
+				std::vector<uchar> vectordata(buf.begin(),buf.end()); /* change the recieved mat frame(1*230400) to vector */
+				cv::Mat data_mat(vectordata,true);
+
+				img = data_mat.reshape(3,480);       /* reshape to 3 channel and 240 rows */
+				//cout<<"reshape over"<<endl;
+				//emit SigUpdateTransmissionWindow();
+
+				    // cvtColor(frame, frame, CV_BGR2RGB);
+
+				        // This will stupidly wait 1 sec doing nothing...
+				QEventLoop loop;
+				QTimer::singleShot(100, &loop, SLOT(quit()));
+				loop.exec();
+
+				// Once we're done waiting, value is updated
+				emit valueChanged(QString::number(i));	
         }
-
-        // This will stupidly wait 1 sec doing nothing...
-        QEventLoop loop;
-        QTimer::singleShot(1000, &loop, SLOT(quit()));
-        loop.exec();
-
-        // Once we're done waiting, value is updated
-        emit valueChanged(QString::number(i));
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
     }
 
     // Set _working to false, meaning the process can't be aborted anymore.

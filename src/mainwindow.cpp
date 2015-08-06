@@ -7,6 +7,8 @@
 #include <boost/array.hpp>
 #include <boost/thread/thread.hpp>
 #include <cv.h>
+#include <QDebug>
+
 //#include "Source.h"
 
 #define _ITERATOR_DEBUG_LEVEL = 2
@@ -14,7 +16,7 @@
 using namespace std;
 using boost::asio::ip::tcp;
 using namespace cv;
-Mat  img = Mat::zeros(640, 480, CV_8UC3);
+//Mat  img = Mat::zeros(640, 480, CV_8UC3);
 
 
 bool flag = false;                              /* if flag is false ,the thread is not ready to show the mat frame */
@@ -35,82 +37,28 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(worker, SIGNAL(workRequested()), thread, SLOT(start()));
     connect(thread, SIGNAL(started()), worker, SLOT(doWork()));
     connect(worker, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
-	//connect(this, SIGNAL(SigUpdateTransmissionWindow()),
-      //  SLOT(SlotUpdateTransmissionWindow(/* QLabel*, Mat*/)),
-        //Qt::QueuedConnection);
 
 }
 
 MainWindow::~MainWindow()
 {
+	worker->abort();
+    thread->wait();
+    qDebug()<<"Deleting thread and worker in Thread "<<this->QObject::thread()->currentThreadId();
+    
+	delete thread;
+    delete worker;
     delete ui;
-}
-
-//void servershow()
-//{
-//   while (true)
-//    {
-//       if (flag)
-//        {
-//            imshow("server",img);
-//			//emit SigUpdateTransmissionWindow();
-//            waitKey(20);
-//        }
-//    }
-//}
-
-void servershow(){
-		try{
-        boost::asio::io_service io_service;
-        boost::array<char, 921600> buf;         /* the size of reciev mat frame is caculate by 320*240*3 */
-        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 3200));
-
-        for (;;){
-				tcp::socket socket(io_service);
-				acceptor.accept(socket);
-				boost::system::error_code error;
-				size_t len = socket.read_some(boost::asio::buffer(buf), error);
-				cout<<"get data length :"<<len<<endl; /* disp the data size recieved */
-				std::vector<uchar> vectordata(buf.begin(),buf.end()); /* change the recieved mat frame(1*230400) to vector */
-				cv::Mat data_mat(vectordata,true);
-
-				img = data_mat.reshape(3,480);       /* reshape to 3 channel and 240 rows */
-				//cout<<"reshape over"<<endl;
-				//emit SigUpdateTransmissionWindow();
-
-				    // cvtColor(frame, frame, CV_BGR2RGB);
-
-				flag = true;	
-        }
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
 }
 
 //the "start" button
 void MainWindow::on_pushButton_clicked()
 {
-    //MyThread *myThread = new MyThread;
-    //connect(myThread, SIGNAL(WorkerThread::aaa()),
-    //                      SLOT(MainWindow::onProgressChagned()));
-    //// Setup callback for cleanup when it finishes
-    //connect(myThread, SIGNAL(finished()),
-    //        myThread, SLOT(deleteLater()));
-    //myThread->start(); // This invokes WorkerThread::run in a new thread
 
     worker->abort();
     thread->wait(); // If the thread is not running, this will immediately return.
 
     worker->requestWork();
-
-
-	//boost::thread thrd(boost::bind(&servershow,this, boost::ref(ui->label_7)));
-	//boost::thread thrd(&servershow);
-					//QImage qimg = QImage((const unsigned char*)(img.data), img.cols, img.rows, QImage::Format_RGB888);
-				    //ui->label_7->setPixmap(QPixmap::fromImage(qimg));
-	//thrd.join();
 }
 
 //the "Mesure depth one time" button
@@ -270,11 +218,11 @@ void MainWindow::on_pushButton_5_clicked()
     robot.setInitialDepthFrame(frame);
 }
 
-void MainWindow::onProgressChagned()
-{
-	Mat m = img;
-	cout << "slot slot slot " << endl; 
-    //cvtColor(m, m, CV_BGR2RGB);
-    //QImage img = QImage((const unsigned char*)(m.data), m.cols, m.rows, QImage::Format_RGB888);
-    //ui->label_7->setPixmap(QPixmap::fromImage(img));
-}
+//void MainWindow::onProgressChagned()
+//{
+//	Mat m = img;
+//	cout << "slot slot slot " << endl; 
+//    //cvtColor(m, m, CV_BGR2RGB);
+//    //QImage img = QImage((const unsigned char*)(m.data), m.cols, m.rows, QImage::Format_RGB888);
+//    //ui->label_7->setPixmap(QPixmap::fromImage(img));
+//}
