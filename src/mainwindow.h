@@ -23,8 +23,6 @@ public:
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-	//void servershow();
-
 
 private slots:
     void on_pushButton_clicked();
@@ -51,6 +49,7 @@ private slots:
 
     void on_pushButton_5_clicked();
 
+	void slot1(cv::Mat value);
 
 
 private:

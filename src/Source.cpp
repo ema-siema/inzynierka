@@ -2,12 +2,18 @@
 #include "Source.h"
 #include <QTimer>
 #include <QEventLoop>
-
+#include <QPixmap>
 #include <QThread>
 #include <QDebug>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/thread/thread.hpp>
+
+
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/objdetect/objdetect.hpp>
+
 
 #include <cv.h>
 
@@ -28,7 +34,7 @@ void Worker::requestWork()
     mutex.lock();
     _working = true;
     _abort = false;
-    qDebug()<<"Request worker start in Thread "<<thread()->currentThreadId();
+    qDebug()<<"Request worker start in Thread "<<thread()->currentThreadId() << endl;
     mutex.unlock();
 
     emit workRequested();
@@ -58,7 +64,7 @@ void Worker::doWork()
         boost::array<char, 921600> buf;         /* the size of reciev mat frame is caculate by 320*240*3 */
         tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 3200));
 
-        for (int i = 0; i < 60; i ++){
+        for (int i = 0; i < 120; i ++){
 
 				mutex.lock();
 				bool abort = _abort;
@@ -73,23 +79,14 @@ void Worker::doWork()
 				acceptor.accept(socket);
 				boost::system::error_code error;
 				size_t len = socket.read_some(boost::asio::buffer(buf), error);
-				std::cout<<"get data length :"<<len<<endl; /* disp the data size recieved */
+				std::cout<< "get data length :"<<len <<std::endl; /* disp the data size recieved */
 				std::vector<uchar> vectordata(buf.begin(),buf.end()); /* change the recieved mat frame(1*230400) to vector */
 				cv::Mat data_mat(vectordata,true);
 
-				img = data_mat.reshape(3,480);       /* reshape to 3 channel and 240 rows */
-				//cout<<"reshape over"<<endl;
-				//emit SigUpdateTransmissionWindow();
+				img = data_mat.reshape(3,480);       /* reshape to 3 channel and 480 rows */
+				
 
-				    // cvtColor(frame, frame, CV_BGR2RGB);
-
-				        // This will stupidly wait 1 sec doing nothing...
-				QEventLoop loop;
-				QTimer::singleShot(100, &loop, SLOT(quit()));
-				loop.exec();
-
-				// Once we're done waiting, value is updated
-				emit valueChanged(QString::number(i));	
+				emit valueChanged(img);	
         }
     }
     catch (std::exception& e)

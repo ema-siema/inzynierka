@@ -16,11 +16,6 @@
 using namespace std;
 using boost::asio::ip::tcp;
 using namespace cv;
-//Mat  img = Mat::zeros(640, 480, CV_8UC3);
-
-
-bool flag = false;                              /* if flag is false ,the thread is not ready to show the mat frame */
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,13 +23,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
 	thread = new QThread();
     worker = new Worker();
 
-    worker->moveToThread(thread);
-    connect(worker, SIGNAL(valueChanged(QString)), ui->label_7, SLOT(setText(QString)));
-    connect(worker, SIGNAL(workRequested()), thread, SLOT(start()));
+	worker->moveToThread(thread);
+	qRegisterMetaType< cv::Mat >("cv::Mat"); //potrzebne, ¿eby da³o siê wsadziæ cv:Mat do QT'owego SLOTa
+	Q_ASSERT(connect(worker, SIGNAL(valueChanged(cv::Mat)), this, SLOT(slot1(cv::Mat))));
+	connect(worker, SIGNAL(workRequested()), thread, SLOT(start()));
     connect(thread, SIGNAL(started()), worker, SLOT(doWork()));
     connect(worker, SIGNAL(finished()), thread, SLOT(quit()), Qt::DirectConnection);
 
@@ -49,6 +44,13 @@ MainWindow::~MainWindow()
 	delete thread;
     delete worker;
     delete ui;
+}
+
+void MainWindow::slot1(cv::Mat value){
+	qDebug()<<"slot1()";
+	//imshow("server", value);
+	QImage img = QImage((const unsigned char*)(value.data), value.cols, value.rows, QImage::Format_RGB888);
+    ui->label_7->setPixmap(QPixmap::fromImage(img));
 }
 
 //the "start" button
